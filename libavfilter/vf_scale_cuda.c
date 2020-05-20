@@ -539,6 +539,15 @@ static int scalecuda_resize(AVFilterContext *ctx,
                            out->data[0], out->width, out->height, out->linesize[0]/4,
                            1);
         break;
+    case AV_PIX_FMT_0RGB32:
+        av_log(ctx, AV_LOG_TRACE, "resizing %dx%d -> %dx%d\n", in->width, in->height, out->width, out->height);
+        av_log(ctx, AV_LOG_TRACE, "data 0 @ %p 1 @ %p\n", &in->data[0], &in->data[1]);
+        av_log(ctx, AV_LOG_TRACE, "linesize i %d %d | o %d %d\n", in->linesize[0], in->linesize[1], out->linesize[0], out->linesize[1]);
+        call_resize_kernel(ctx, s->cu_func_uchar4, 4,
+                           in->data[0], in->width, in->height, in->linesize[0],
+                           out->data[0], out->width, out->height, out->linesize[0]/4,
+                           1);
+        break;
     default:
         return AVERROR_BUG;
     }
