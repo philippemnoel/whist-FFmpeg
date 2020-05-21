@@ -1,3 +1,11 @@
+FRACTAL README
+=============
+
+This repository is Fractal's fork of FFmpeg, with a few modifications. To build FFmpeg yourself, refer to the ffmpeg-windows-build-helpers repo.
+
+Here's a list of modifications we've made from the original FFmpeg fork:
+- Add 0RGB32 Cuda resizing (to perform sw_scale entirely in the GPU)
+
 FFmpeg README
 =============
 
