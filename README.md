@@ -1,4 +1,4 @@
-FRACTAL README
+Fractal README
 =============
 
 This repository is Fractal's fork of FFmpeg, with a few modifications. To build FFmpeg yourself, refer to the ffmpeg-windows-build-helpers repo.
