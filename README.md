@@ -17,7 +17,6 @@ Here's a list of modifications we've made to the original FFmpeg fork:
 - Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace sw_scale entirely in the GPU)
 
 ---
----
 
 FFmpeg README
 =============
