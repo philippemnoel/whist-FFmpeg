@@ -206,6 +206,7 @@ OBJS-$(CONFIG_CROPDETECT_FILTER)             += vf_cropdetect.o
 OBJS-$(CONFIG_CUE_FILTER)                    += f_cue.o
 OBJS-$(CONFIG_CURVES_FILTER)                 += vf_curves.o
 OBJS-$(CONFIG_DATASCOPE_FILTER)              += vf_datascope.o
+OBJS-$(CONFIG_DBLUR_FILTER)                  += vf_dblur.o
 OBJS-$(CONFIG_DCTDNOIZ_FILTER)               += vf_dctdnoiz.o
 OBJS-$(CONFIG_DEBAND_FILTER)                 += vf_deband.o
 OBJS-$(CONFIG_DEBLOCK_FILTER)                += vf_deblock.o
@@ -436,6 +437,7 @@ OBJS-$(CONFIG_UNPREMULTIPLY_FILTER)          += vf_premultiply.o framesync.o
 OBJS-$(CONFIG_UNSHARP_FILTER)                += vf_unsharp.o
 OBJS-$(CONFIG_UNSHARP_OPENCL_FILTER)         += vf_unsharp_opencl.o opencl.o \
                                                 opencl/unsharp.o
+OBJS-$(CONFIG_UNTILE_FILTER)                 += vf_untile.o
 OBJS-$(CONFIG_USPP_FILTER)                   += vf_uspp.o
 OBJS-$(CONFIG_V360_FILTER)                   += vf_v360.o
 OBJS-$(CONFIG_VAGUEDENOISER_FILTER)          += vf_vaguedenoiser.o

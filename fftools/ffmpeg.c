@@ -182,7 +182,7 @@ static int sub2video_get_blank_frame(InputStream *ist)
     ist->sub2video.frame->width  = ist->dec_ctx->width  ? ist->dec_ctx->width  : ist->sub2video.w;
     ist->sub2video.frame->height = ist->dec_ctx->height ? ist->dec_ctx->height : ist->sub2video.h;
     ist->sub2video.frame->format = AV_PIX_FMT_RGB32;
-    if ((ret = av_frame_get_buffer(frame, 32)) < 0)
+    if ((ret = av_frame_get_buffer(frame, 0)) < 0)
         return ret;
     memset(frame->data[0], 0, frame->height * frame->linesize[0]);
     return 0;
@@ -2370,7 +2370,7 @@ static int decode_video(InputStream *ist, AVPacket *pkt, int *got_output, int64_
             av_log(ist->dec_ctx, AV_LOG_WARNING,
                    "video_delay is larger in decoder than demuxer %d > %d.\n"
                    "If you want to help, upload a sample "
-                   "of this file to ftp://upload.ffmpeg.org/incoming/ "
+                   "of this file to https://streams.videolan.org/upload/ "
                    "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)\n",
                    ist->dec_ctx->has_b_frames,
                    ist->st->codecpar->video_delay);
@@ -4713,6 +4713,10 @@ static int transcode(void)
             av_freep(&ost->enc_ctx->stats_in);
         }
         total_packets_written += ost->packets_written;
+        if (!ost->packets_written && (abort_on_flags & ABORT_ON_FLAG_EMPTY_OUTPUT_STREAM)) {
+            av_log(NULL, AV_LOG_FATAL, "Empty output on stream %d.\n", i);
+            exit_program(1);
+        }
     }
 
     if (!total_packets_written && (abort_on_flags & ABORT_ON_FLAG_EMPTY_OUTPUT)) {

@@ -1389,13 +1389,13 @@ Apply an arbitrary Infinite Impulse Response filter.
 It accepts the following parameters:
 
 @table @option
-@item z
+@item zeros, z
 Set numerator/zeros coefficients.
 
-@item p
+@item poles, p
 Set denominator/poles coefficients.
 
-@item k
+@item gains, k
 Set channels gains.
 
 @item dry_gain
@@ -1404,25 +1404,27 @@ Set input gain.
 @item wet_gain
 Set output gain.
 
-@item f
+@item format, f
 Set coefficients format.
 
 @table @samp
 @item tf
-transfer function
+digital transfer function
 @item zp
 Z-plane zeros/poles, cartesian (default)
 @item pr
 Z-plane zeros/poles, polar radians
 @item pd
 Z-plane zeros/poles, polar degrees
+@item sp
+S-plane zeros/poles
 @end table
 
-@item r
+@item process, r
 Set kind of processing.
 Can be @code{d} - direct or @code{s} - serial cascading. Default is @code{s}.
 
-@item e
+@item precision, e
 Set filtering precision.
 
 @table @samp
@@ -1435,6 +1437,10 @@ single-precision floating-point
 @item i16
 16-bit integers
 @end table
+
+@item normalize, n
+Normalize filter coefficients, by default is enabled.
+Enabling it will normalize magnitude response at DC to 0dB.
 
 @item mix
 How much to use filtered signal in output. Default is 1.
@@ -1564,6 +1570,9 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item order, o
+Set the filter order, can be 1 or 2. Default is 2.
 @end table
 
 @subsection Commands
@@ -4188,6 +4197,9 @@ If not specified, or the expressed duration is negative, the audio is
 supposed to be generated forever.
 Only used if plugin have zero inputs.
 
+@item latency, l
+Enable latency compensation, by default is disabled.
+Only used if plugin have inputs.
 @end table
 
 @subsection Examples
@@ -8553,6 +8565,29 @@ Set background opacity.
 @item format
 Set display number format. Can be @code{hex}, or @code{dec}. Default is @code{hex}.
 @end table
+
+@section dblur
+Apply Directional blur filter.
+
+The filter accepts the following options:
+
+@table @option
+@item angle
+Set angle of directional blur. Default is @code{45}.
+
+@item radius
+Set radius of directional blur. Default is @code{5}.
+
+@item planes
+Set which planes to filter. By default all planes are filtered.
+@end table
+
+@subsection Commands
+This filter supports same @ref{commands} as options.
+The command accepts the same syntax of the corresponding option.
+
+If the specified expression is not valid, it is kept at its current
+value.
 
 @section dctdnoiz
 
@@ -14310,8 +14345,14 @@ It accepts the following values:
 @item yuv420
 force YUV420 output
 
+@item yuv420p10
+force YUV420p10 output
+
 @item yuv422
 force YUV422 output
+
+@item yuv422p10
+force YUV422p10 output
 
 @item yuv444
 force YUV444 output
@@ -18193,9 +18234,12 @@ ffmpeg -i in.avi -vf thumbnail,scale=300:200 -frames:v 1 out.png
 @end example
 @end itemize
 
+@anchor{tile}
 @section tile
 
 Tile several successive frames together.
+
+The @ref{untile} filter can do the reverse.
 
 The filter accepts the following options:
 
@@ -18980,6 +19024,37 @@ unsharp=7:7:-2:7:7:-2
 @end example
 @end itemize
 
+@anchor{untile}
+@section untile
+
+Decompose a video made of tiled images into the individual images.
+
+The frame rate of the output video is the frame rate of the input video
+multiplied by the number of tiles.
+
+This filter does the reverse of @ref{tile}.
+
+The filter accepts the following options:
+
+@table @option
+
+@item layout
+Set the grid size (i.e. the number of lines and columns). For the syntax of
+this option, check the
+@ref{video size syntax,,"Video size" section in the ffmpeg-utils manual,ffmpeg-utils}.
+@end table
+
+@subsection Examples
+
+@itemize
+@item
+Produce a 1-second video from a still image file made of 25 frames stacked
+vertically, like an analogic film reel:
+@example
+ffmpeg -r 1 -i image.jpg -vf untile=1x25 movie.mkv
+@end example
+@end itemize
+
 @section uspp
 
 Apply ultra slow/simple postprocessing filter that compresses and decompresses
@@ -19247,6 +19322,46 @@ Truncated square pyramid projection.
 @item he
 @item hequirect
 Half equirectangular projection.
+
+@item equisolid
+Equisolid format.
+
+Format specific options:
+@table @option
+@item h_fov
+@item v_fov
+@item d_fov
+Set output horizontal/vertical/diagonal field of view. Values in degrees.
+
+If diagonal field of view is set it overrides horizontal and vertical field of view.
+
+@item ih_fov
+@item iv_fov
+@item id_fov
+Set input horizontal/vertical/diagonal field of view. Values in degrees.
+
+If diagonal field of view is set it overrides horizontal and vertical field of view.
+@end table
+
+@item og
+Orthographic format.
+
+Format specific options:
+@table @option
+@item h_fov
+@item v_fov
+@item d_fov
+Set output horizontal/vertical/diagonal field of view. Values in degrees.
+
+If diagonal field of view is set it overrides horizontal and vertical field of view.
+
+@item ih_fov
+@item iv_fov
+@item id_fov
+Set input horizontal/vertical/diagonal field of view. Values in degrees.
+
+If diagonal field of view is set it overrides horizontal and vertical field of view.
+@end table
 @end table
 
 @item interp
@@ -19410,6 +19525,20 @@ Partial of full denoising (limited coefficients shrinking), from 0 to 100. Defau
 
 @item planes
 A list of the planes to process. By default all planes are processed.
+
+@item type
+The threshold type the filter will use.
+
+It accepts the following values:
+@table @samp
+@item universal
+Threshold used is same for all decompositions.
+
+@item bayes
+Threshold used depends also on each decomposition coefficients.
+@end table
+
+Default is universal.
 @end table
 
 @section vectorscope
@@ -20653,6 +20782,12 @@ Input frame count.
 @item on
 Output frame count.
 
+@item in_time, it
+The input timestamp expressed in seconds. It's NAN if the input timestamp is unknown.
+
+@item out_time, time, ot
+The output timestamp expressed in seconds.
+
 @item x
 @item y
 Last calculated 'x' and 'y' position from 'x' and 'y' expression
@@ -20691,13 +20826,13 @@ display aspect ratio
 
 @itemize
 @item
-Zoom-in up to 1.5 and pan at same time to some spot near center of picture:
+Zoom in up to 1.5x and pan at same time to some spot near center of picture:
 @example
 zoompan=z='min(zoom+0.0015,1.5)':d=700:x='if(gte(zoom,1.5),x,x+1/a)':y='if(gte(zoom,1.5),y,y+1)':s=640x360
 @end example
 
 @item
-Zoom-in up to 1.5 and pan always at center of picture:
+Zoom in up to 1.5x and pan always at center of picture:
 @example
 zoompan=z='min(zoom+0.0015,1.5)':d=700:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'
 @end example
@@ -20707,6 +20842,13 @@ Same as above but without pausing:
 @example
 zoompan=z='min(max(zoom,pzoom)+0.0015,1.5)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'
 @end example
+
+@item
+Zoom in 2x into center of picture only for the first second of the input video:
+@example
+zoompan=z='if(between(in_time,0,1),2,1)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'
+@end example
+
 @end itemize
 
 @anchor{zscale}

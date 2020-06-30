@@ -63,6 +63,7 @@
 #include "bytestream.h"
 #include "wmv2.h"
 #include "rv10.h"
+#include "packet_internal.h"
 #include "libxvid.h"
 #include <limits.h>
 #include "sp5x.h"
@@ -924,27 +925,25 @@ FF_ENABLE_DEPRECATION_WARNINGS
     ff_qpeldsp_init(&s->qdsp);
 
     if (s->msmpeg4_version) {
-        FF_ALLOCZ_OR_GOTO(s->avctx, s->ac_stats,
-                          2 * 2 * (MAX_LEVEL + 1) *
-                          (MAX_RUN + 1) * 2 * sizeof(int), fail);
+        int ac_stats_size = 2 * 2 * (MAX_LEVEL + 1) *  (MAX_RUN + 1) * 2 * sizeof(int);
+        if (!(s->ac_stats = av_mallocz(ac_stats_size)))
+            return AVERROR(ENOMEM);
     }
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->avctx->stats_out, 256, fail);
 
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_intra_matrix,   64 * 32 * sizeof(int), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_chroma_intra_matrix, 64 * 32 * sizeof(int), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_inter_matrix,   64 * 32 * sizeof(int), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_intra_matrix16, 64 * 32 * 2 * sizeof(uint16_t), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_chroma_intra_matrix16, 64 * 32 * 2 * sizeof(uint16_t), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->q_inter_matrix16, 64 * 32 * 2 * sizeof(uint16_t), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->input_picture,
-                      MAX_PICTURE_COUNT * sizeof(Picture *), fail);
-    FF_ALLOCZ_OR_GOTO(s->avctx, s->reordered_input_picture,
-                      MAX_PICTURE_COUNT * sizeof(Picture *), fail);
-
+    if (!(s->avctx->stats_out = av_mallocz(256))               ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_intra_matrix,          32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_chroma_intra_matrix,   32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_inter_matrix,          32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_intra_matrix16,        32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_chroma_intra_matrix16, 32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->q_inter_matrix16,        32) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->input_picture,           MAX_PICTURE_COUNT) ||
+        !FF_ALLOCZ_TYPED_ARRAY(s->reordered_input_picture, MAX_PICTURE_COUNT))
+        return AVERROR(ENOMEM);
 
     if (s->noise_reduction) {
-        FF_ALLOCZ_OR_GOTO(s->avctx, s->dct_offset,
-                          2 * 64 * sizeof(uint16_t), fail);
+        if (!FF_ALLOCZ_TYPED_ARRAY(s->dct_offset, 2))
+            return AVERROR(ENOMEM);
     }
 
     ff_dct_encode_init(s);
@@ -1044,7 +1043,7 @@ FF_ENABLE_DEPRECATION_WARNINGS
             s->tmp_frames[i]->width  = s->width  >> s->brd_scale;
             s->tmp_frames[i]->height = s->height >> s->brd_scale;
 
-            ret = av_frame_get_buffer(s->tmp_frames[i], 32);
+            ret = av_frame_get_buffer(s->tmp_frames[i], 0);
             if (ret < 0)
                 return ret;
         }
@@ -1059,9 +1058,6 @@ FF_ENABLE_DEPRECATION_WARNINGS
     cpb_props->buffer_size = avctx->rc_buffer_size;
 
     return 0;
-fail:
-    ff_mpv_encode_end(avctx);
-    return AVERROR_UNKNOWN;
 }
 
 av_cold int ff_mpv_encode_end(AVCodecContext *avctx)
@@ -4743,6 +4739,7 @@ AVCodec ff_h263_encoder = {
     .init           = ff_mpv_encode_init,
     .encode2        = ff_mpv_encode_picture,
     .close          = ff_mpv_encode_end,
+    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .pix_fmts= (const enum AVPixelFormat[]){AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
     .priv_class     = &h263_class,
 };
@@ -4772,6 +4769,7 @@ AVCodec ff_h263p_encoder = {
     .encode2        = ff_mpv_encode_picture,
     .close          = ff_mpv_encode_end,
     .capabilities   = AV_CODEC_CAP_SLICE_THREADS,
+    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .pix_fmts       = (const enum AVPixelFormat[]){ AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE },
     .priv_class     = &h263p_class,
 };
@@ -4792,6 +4790,7 @@ AVCodec ff_msmpeg4v2_encoder = {
     .init           = ff_mpv_encode_init,
     .encode2        = ff_mpv_encode_picture,
     .close          = ff_mpv_encode_end,
+    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .pix_fmts       = (const enum AVPixelFormat[]){ AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE },
     .priv_class     = &msmpeg4v2_class,
 };
@@ -4812,6 +4811,7 @@ AVCodec ff_msmpeg4v3_encoder = {
     .init           = ff_mpv_encode_init,
     .encode2        = ff_mpv_encode_picture,
     .close          = ff_mpv_encode_end,
+    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .pix_fmts       = (const enum AVPixelFormat[]){ AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE },
     .priv_class     = &msmpeg4v3_class,
 };
@@ -4832,6 +4832,7 @@ AVCodec ff_wmv1_encoder = {
     .init           = ff_mpv_encode_init,
     .encode2        = ff_mpv_encode_picture,
     .close          = ff_mpv_encode_end,
+    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .pix_fmts       = (const enum AVPixelFormat[]){ AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE },
     .priv_class     = &wmv1_class,
 };

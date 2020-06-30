@@ -922,7 +922,7 @@ static int qsv_transfer_data_to(AVHWFramesContext *ctx, AVFrame *dst,
         tmp_frame.format         = src->format;
         tmp_frame.width          = FFALIGN(src->width, 16);
         tmp_frame.height         = FFALIGN(src->height, 16);
-        ret = av_frame_get_buffer(&tmp_frame, 32);
+        ret = av_frame_get_buffer(&tmp_frame, 0);
         if (ret < 0)
             return ret;
 
@@ -1213,7 +1213,8 @@ fail:
 }
 
 static int qsv_device_derive(AVHWDeviceContext *ctx,
-                             AVHWDeviceContext *child_device_ctx, int flags)
+                             AVHWDeviceContext *child_device_ctx,
+                             AVDictionary *opts, int flags)
 {
     return qsv_device_derive_from_child(ctx, MFX_IMPL_HARDWARE_ANY,
                                         child_device_ctx, flags);

@@ -522,7 +522,7 @@ static int FUNC(st_ref_pic_set)(CodedBitstreamContext *ctx, RWContext *rw,
         infer(inter_ref_pic_set_prediction_flag, 0);
 
     if (current->inter_ref_pic_set_prediction_flag) {
-        unsigned int ref_rps_idx, num_delta_pocs;
+        unsigned int ref_rps_idx, num_delta_pocs, num_ref_pics;
         const H265RawSTRefPicSet *ref;
         int delta_rps, d_poc;
         int ref_delta_poc_s0[HEVC_MAX_REFS], ref_delta_poc_s1[HEVC_MAX_REFS];
@@ -538,18 +538,28 @@ static int FUNC(st_ref_pic_set)(CodedBitstreamContext *ctx, RWContext *rw,
         ref_rps_idx = st_rps_idx - (current->delta_idx_minus1 + 1);
         ref = &sps->st_ref_pic_set[ref_rps_idx];
         num_delta_pocs = ref->num_negative_pics + ref->num_positive_pics;
+        av_assert0(num_delta_pocs < HEVC_MAX_DPB_SIZE);
 
         flag(delta_rps_sign);
         ue(abs_delta_rps_minus1, 0, INT16_MAX);
         delta_rps = (1 - 2 * current->delta_rps_sign) *
             (current->abs_delta_rps_minus1 + 1);
 
+        num_ref_pics = 0;
         for (j = 0; j <= num_delta_pocs; j++) {
             flags(used_by_curr_pic_flag[j], 1, j);
             if (!current->used_by_curr_pic_flag[j])
                 flags(use_delta_flag[j], 1, j);
             else
                 infer(use_delta_flag[j], 1);
+            if (current->use_delta_flag[j])
+                ++num_ref_pics;
+        }
+        if (num_ref_pics >= HEVC_MAX_DPB_SIZE) {
+            av_log(ctx->log_ctx, AV_LOG_ERROR, "Invalid stream: "
+                   "short-term ref pic set %d "
+                   "contains too many pictures.\n", st_rps_idx);
+            return AVERROR_INVALIDDATA;
         }
 
         // Since the stored form of an RPS here is actually the delta-step
@@ -601,8 +611,6 @@ static int FUNC(st_ref_pic_set)(CodedBitstreamContext *ctx, RWContext *rw,
             }
         }
 
-        if (i > 15)
-            return AVERROR_INVALIDDATA;
         infer(num_negative_pics, i);
         for (i = 0; i < current->num_negative_pics; i++) {
             infer(delta_poc_s0_minus1[i],
@@ -632,8 +640,6 @@ static int FUNC(st_ref_pic_set)(CodedBitstreamContext *ctx, RWContext *rw,
             }
         }
 
-        if (i + current->num_negative_pics > 15)
-            return AVERROR_INVALIDDATA;
         infer(num_positive_pics, i);
         for (i = 0; i < current->num_positive_pics; i++) {
             infer(delta_poc_s1_minus1[i],
@@ -734,6 +740,32 @@ static int FUNC(sps_scc_extension)(CodedBitstreamContext *ctx, RWContext *rw,
 
     u(2, motion_vector_resolution_control_idc, 0, 2);
     flag(intra_boundary_filtering_disable_flag);
+
+    return 0;
+}
+
+static int FUNC(vui_parameters_default)(CodedBitstreamContext *ctx,
+                                        RWContext *rw, H265RawVUI *current,
+                                        H265RawSPS *sps)
+{
+    infer(aspect_ratio_idc, 0);
+
+    infer(video_format,             5);
+    infer(video_full_range_flag,    0);
+    infer(colour_primaries,         2);
+    infer(transfer_characteristics, 2);
+    infer(matrix_coefficients,      2);
+
+    infer(chroma_sample_loc_type_top_field,    0);
+    infer(chroma_sample_loc_type_bottom_field, 0);
+
+    infer(tiles_fixed_structure_flag,    0);
+    infer(motion_vectors_over_pic_boundaries_flag, 1);
+    infer(min_spatial_segmentation_idc,  0);
+    infer(max_bytes_per_pic_denom,       2);
+    infer(max_bits_per_min_cu_denom,     1);
+    infer(log2_max_mv_length_horizontal, 15);
+    infer(log2_max_mv_length_vertical,   15);
 
     return 0;
 }
@@ -902,6 +934,8 @@ static int FUNC(sps)(CodedBitstreamContext *ctx, RWContext *rw,
     flag(vui_parameters_present_flag);
     if (current->vui_parameters_present_flag)
         CHECK(FUNC(vui_parameters)(ctx, rw, &current->vui, current));
+    else
+        CHECK(FUNC(vui_parameters_default)(ctx, rw, &current->vui, current));
 
     flag(sps_extension_present_flag);
     if (current->sps_extension_present_flag) {
@@ -1371,7 +1405,7 @@ static int FUNC(slice_segment_header)(CodedBitstreamContext *ctx, RWContext *rw,
                     infer(num_long_term_sps, 0);
                     idx_size = 0;
                 }
-                ue(num_long_term_pics, 0, HEVC_MAX_LONG_TERM_REF_PICS);
+                ue(num_long_term_pics, 0, HEVC_MAX_REFS - current->num_long_term_sps);
 
                 for (i = 0; i < current->num_long_term_sps +
                                 current->num_long_term_pics; i++) {

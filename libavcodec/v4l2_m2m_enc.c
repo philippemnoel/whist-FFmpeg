@@ -24,11 +24,13 @@
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <search.h>
+#include "encode.h"
 #include "libavcodec/avcodec.h"
 #include "libavcodec/internal.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/opt.h"
+#include "profiles.h"
 #include "v4l2_context.h"
 #include "v4l2_m2m.h"
 #include "v4l2_fmt.h"
@@ -287,10 +289,23 @@ static int v4l2_receive_packet(AVCodecContext *avctx, AVPacket *avpkt)
     V4L2m2mContext *s = ((V4L2m2mPriv*)avctx->priv_data)->context;
     V4L2Context *const capture = &s->capture;
     V4L2Context *const output = &s->output;
+    AVFrame *frame = s->frame;
     int ret;
 
     if (s->draining)
         goto dequeue;
+
+    ret = ff_encode_get_frame(avctx, frame);
+    if (ret < 0 && ret != AVERROR_EOF)
+        return ret;
+
+    if (ret == AVERROR_EOF)
+        frame = NULL;
+
+    ret = v4l2_send_frame(avctx, frame);
+    av_frame_unref(frame);
+    if (ret < 0)
+        return ret;
 
     if (!output->streamon) {
         ret = ff_v4l2_context_set_status(output, VIDIOC_STREAMON);
@@ -370,10 +385,19 @@ static av_cold int v4l2_encode_close(AVCodecContext *avctx)
 #define OFFSET(x) offsetof(V4L2m2mPriv, x)
 #define FLAGS AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
 
+#define V4L_M2M_CAPTURE_OPTS \
+    V4L_M2M_DEFAULT_OPTS,\
+    { "num_capture_buffers", "Number of buffers in the capture context", \
+        OFFSET(num_capture_buffers), AV_OPT_TYPE_INT, {.i64 = 4 }, 4, INT_MAX, FLAGS }
+
+static const AVOption mpeg4_options[] = {
+    V4L_M2M_CAPTURE_OPTS,
+    FF_MPEG4_PROFILE_OPTS
+    { NULL },
+};
+
 static const AVOption options[] = {
-    V4L_M2M_DEFAULT_OPTS,
-    { "num_capture_buffers", "Number of buffers in the capture context",
-        OFFSET(num_capture_buffers), AV_OPT_TYPE_INT, {.i64 = 4 }, 4, INT_MAX, FLAGS },
+    V4L_M2M_CAPTURE_OPTS,
     { NULL },
 };
 
@@ -383,16 +407,16 @@ static const AVCodecDefault v4l2_m2m_defaults[] = {
     { NULL },
 };
 
-#define M2MENC_CLASS(NAME) \
+#define M2MENC_CLASS(NAME, OPTIONS_NAME) \
     static const AVClass v4l2_m2m_ ## NAME ## _enc_class = { \
         .class_name = #NAME "_v4l2m2m_encoder", \
         .item_name  = av_default_item_name, \
-        .option     = options, \
+        .option     = OPTIONS_NAME, \
         .version    = LIBAVUTIL_VERSION_INT, \
     };
 
-#define M2MENC(NAME, LONGNAME, CODEC) \
-    M2MENC_CLASS(NAME) \
+#define M2MENC(NAME, LONGNAME, OPTIONS_NAME, CODEC) \
+    M2MENC_CLASS(NAME, OPTIONS_NAME) \
     AVCodec ff_ ## NAME ## _v4l2m2m_encoder = { \
         .name           = #NAME "_v4l2m2m" , \
         .long_name      = NULL_IF_CONFIG_SMALL("V4L2 mem2mem " LONGNAME " encoder wrapper"), \
@@ -401,16 +425,15 @@ static const AVCodecDefault v4l2_m2m_defaults[] = {
         .priv_data_size = sizeof(V4L2m2mPriv), \
         .priv_class     = &v4l2_m2m_ ## NAME ##_enc_class, \
         .init           = v4l2_encode_init, \
-        .send_frame     = v4l2_send_frame, \
         .receive_packet = v4l2_receive_packet, \
         .close          = v4l2_encode_close, \
         .defaults       = v4l2_m2m_defaults, \
         .capabilities   = AV_CODEC_CAP_HARDWARE | AV_CODEC_CAP_DELAY, \
         .wrapper_name   = "v4l2m2m", \
-    };
+    }
 
-M2MENC(mpeg4,"MPEG4", AV_CODEC_ID_MPEG4);
-M2MENC(h263, "H.263", AV_CODEC_ID_H263);
-M2MENC(h264, "H.264", AV_CODEC_ID_H264);
-M2MENC(hevc, "HEVC",  AV_CODEC_ID_HEVC);
-M2MENC(vp8,  "VP8",   AV_CODEC_ID_VP8);
+M2MENC(mpeg4,"MPEG4", mpeg4_options, AV_CODEC_ID_MPEG4);
+M2MENC(h263, "H.263", options,       AV_CODEC_ID_H263);
+M2MENC(h264, "H.264", options,       AV_CODEC_ID_H264);
+M2MENC(hevc, "HEVC",  options,       AV_CODEC_ID_HEVC);
+M2MENC(vp8,  "VP8",   options,       AV_CODEC_ID_VP8);
