@@ -136,6 +136,9 @@ static const VAAPIFormatDescriptor vaapi_format_map[] = {
 #endif
     MAP(ARGB, RGB32,   ARGB, 0),
     MAP(XRGB, RGB32,   0RGB, 0),
+#ifdef VA_FOURCC_X2R10G10B10
+    MAP(X2R10G10B10, RGB32_10, X2RGB10, 0),
+#endif
 };
 #undef MAP
 
@@ -1624,7 +1627,8 @@ static int vaapi_device_create(AVHWDeviceContext *ctx, const char *device,
 }
 
 static int vaapi_device_derive(AVHWDeviceContext *ctx,
-                               AVHWDeviceContext *src_ctx, int flags)
+                               AVHWDeviceContext *src_ctx,
+                               AVDictionary *opts, int flags)
 {
 #if HAVE_VAAPI_DRM
     if (src_ctx->type == AV_HWDEVICE_TYPE_DRM) {

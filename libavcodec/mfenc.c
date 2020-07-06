@@ -22,16 +22,16 @@
 #define _WIN32_WINNT 0x0602
 #endif
 
+#include "encode.h"
 #include "mf_utils.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/opt.h"
 #include "libavutil/time.h"
-
-// Include after mf_utils.h due to Windows include mess.
-#include "mpeg4audio.h"
+#include "internal.h"
 
 typedef struct MFContext {
     AVClass *av_class;
+    AVFrame *frame;
     int is_video, is_audio;
     GUID main_subtype;
     IMFTransform *mft;
@@ -400,26 +400,6 @@ static int mf_send_sample(AVCodecContext *avctx, IMFSample *sample)
     return 0;
 }
 
-static int mf_send_frame(AVCodecContext *avctx, const AVFrame *frame)
-{
-    MFContext *c = avctx->priv_data;
-    int ret;
-    IMFSample *sample = NULL;
-    if (frame) {
-        sample = mf_avframe_to_sample(avctx, frame);
-        if (!sample)
-            return AVERROR(ENOMEM);
-        if (c->is_video && c->codec_api) {
-            if (frame->pict_type == AV_PICTURE_TYPE_I || !c->sample_sent)
-                ICodecAPI_SetValue(c->codec_api, &ff_CODECAPI_AVEncVideoForceKeyFrame, FF_VAL_VT_UI4(1));
-        }
-    }
-    ret = mf_send_sample(avctx, sample);
-    if (sample)
-        IMFSample_Release(sample);
-    return ret;
-}
-
 static int mf_receive_sample(AVCodecContext *avctx, IMFSample **out_sample)
 {
     MFContext *c = avctx->priv_data;
@@ -502,8 +482,35 @@ static int mf_receive_sample(AVCodecContext *avctx, IMFSample **out_sample)
 
 static int mf_receive_packet(AVCodecContext *avctx, AVPacket *avpkt)
 {
-    IMFSample *sample;
+    MFContext *c = avctx->priv_data;
+    IMFSample *sample = NULL;
     int ret;
+
+    if (!c->frame->buf[0]) {
+        ret = ff_encode_get_frame(avctx, c->frame);
+        if (ret < 0 && ret != AVERROR_EOF)
+            return ret;
+    }
+
+    if (c->frame->buf[0]) {
+        sample = mf_avframe_to_sample(avctx, c->frame);
+        if (!sample) {
+            av_frame_unref(c->frame);
+            return AVERROR(ENOMEM);
+        }
+        if (c->is_video && c->codec_api) {
+            if (c->frame->pict_type == AV_PICTURE_TYPE_I || !c->sample_sent)
+                ICodecAPI_SetValue(c->codec_api, &ff_CODECAPI_AVEncVideoForceKeyFrame, FF_VAL_VT_UI4(1));
+        }
+    }
+
+    ret = mf_send_sample(avctx, sample);
+    if (sample)
+        IMFSample_Release(sample);
+    if (ret != AVERROR(EAGAIN))
+        av_frame_unref(c->frame);
+    if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
+        return ret;
 
     ret = mf_receive_sample(avctx, &sample);
     if (ret < 0)
@@ -637,21 +644,29 @@ static int64_t mf_encv_output_score(AVCodecContext *avctx, IMFMediaType *type)
 static int mf_encv_output_adjust(AVCodecContext *avctx, IMFMediaType *type)
 {
     MFContext *c = avctx->priv_data;
+    AVRational framerate;
 
     ff_MFSetAttributeSize((IMFAttributes *)type, &MF_MT_FRAME_SIZE, avctx->width, avctx->height);
     IMFAttributes_SetUINT32(type, &MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
 
-    ff_MFSetAttributeRatio((IMFAttributes *)type, &MF_MT_FRAME_RATE, avctx->framerate.num, avctx->framerate.den);
+    if (avctx->framerate.num > 0 && avctx->framerate.den > 0) {
+        framerate = avctx->framerate;
+    } else {
+        framerate = av_inv_q(avctx->time_base);
+        framerate.den *= avctx->ticks_per_frame;
+    }
+
+    ff_MFSetAttributeRatio((IMFAttributes *)type, &MF_MT_FRAME_RATE, framerate.num, framerate.den);
 
     // (MS HEVC supports eAVEncH265VProfile_Main_420_8 only.)
     if (avctx->codec_id == AV_CODEC_ID_H264) {
-        UINT32 profile = eAVEncH264VProfile_Base;
+        UINT32 profile = ff_eAVEncH264VProfile_Base;
         switch (avctx->profile) {
         case FF_PROFILE_H264_MAIN:
-            profile = eAVEncH264VProfile_Main;
+            profile = ff_eAVEncH264VProfile_Main;
             break;
         case FF_PROFILE_H264_HIGH:
-            profile = eAVEncH264VProfile_High;
+            profile = ff_eAVEncH264VProfile_High;
             break;
         }
         IMFAttributes_SetUINT32(type, &MF_MT_MPEG2_PROFILE, profile);
@@ -677,7 +692,7 @@ static int mf_encv_output_adjust(AVCodecContext *avctx, IMFMediaType *type)
         // "scenario" to "camera_record" sets it in CFR mode (where the default
         // is VFR), which makes the encoder avoid dropping frames.
         ICodecAPI_SetValue(c->codec_api, &ff_CODECAPI_AVEncMPVDefaultBPictureCount, FF_VAL_VT_UI4(avctx->max_b_frames));
-        avctx->has_b_frames = avctx->max_b_frames > 1 ? 1 : 0;
+        avctx->has_b_frames = avctx->max_b_frames > 0;
 
         ICodecAPI_SetValue(c->codec_api, &ff_CODECAPI_AVEncH264CABACEnable, FF_VAL_VT_BOOL(1));
 
@@ -1028,6 +1043,10 @@ static int mf_init(AVCodecContext *avctx)
     const CLSID *subtype = ff_codec_to_mf_subtype(avctx->codec_id);
     int use_hw = 0;
 
+    c->frame = av_frame_alloc();
+    if (!c->frame)
+        return AVERROR(ENOMEM);
+
     c->is_audio = avctx->codec_type == AVMEDIA_TYPE_AUDIO;
     c->is_video = !c->is_audio;
     c->reorder_delay = AV_NOPTS_VALUE;
@@ -1116,6 +1135,8 @@ static int mf_close(AVCodecContext *avctx)
 
     ff_free_mf(&c->mft);
 
+    av_frame_free(&c->frame);
+
     av_freep(&avctx->extradata);
     avctx->extradata_size = 0;
 
@@ -1140,7 +1161,6 @@ static int mf_close(AVCodecContext *avctx)
         .priv_data_size = sizeof(MFContext),                                   \
         .init           = mf_init,                                             \
         .close          = mf_close,                                            \
-        .send_frame     = mf_send_frame,                                       \
         .receive_packet = mf_receive_packet,                                   \
         EXTRA                                                                  \
         .capabilities   = AV_CODEC_CAP_DELAY | AV_CODEC_CAP_HYBRID,            \

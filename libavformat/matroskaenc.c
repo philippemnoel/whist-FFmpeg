@@ -605,17 +605,18 @@ static int put_xiph_codecpriv(AVFormatContext *s, AVIOContext *pb,
     const uint8_t *header_start[3];
     int header_len[3];
     int first_header_size;
-    int j;
+    int err, j;
 
     if (par->codec_id == AV_CODEC_ID_VORBIS)
         first_header_size = 30;
     else
         first_header_size = 42;
 
-    if (avpriv_split_xiph_headers(par->extradata, par->extradata_size,
-                              first_header_size, header_start, header_len) < 0) {
+    err = avpriv_split_xiph_headers(par->extradata, par->extradata_size,
+                                    first_header_size, header_start, header_len);
+    if (err < 0) {
         av_log(s, AV_LOG_ERROR, "Extradata corrupt.\n");
-        return -1;
+        return err;
     }
 
     avio_w8(pb, 2);                    // number packets - 1
@@ -835,9 +836,8 @@ static void mkv_write_video_color(AVIOContext *pb, const AVStream *st,
      * plus another byte to stay clear of the end. */
     uint8_t colour[(2 + 1 + 8) * 18 + (2 + 1) + 1];
     AVIOContext buf, *dyn_cp = &buf;
-    int side_data_size = 0;
     int colorinfo_size;
-    const uint8_t *side_data;
+    const void *side_data;
 
     ffio_init_context(dyn_cp, colour, sizeof(colour), 1, NULL, NULL, NULL, NULL);
 
@@ -868,21 +868,19 @@ static void mkv_write_video_color(AVIOContext *pb, const AVStream *st,
     }
 
     side_data = av_stream_get_side_data(st, AV_PKT_DATA_CONTENT_LIGHT_LEVEL,
-                                        &side_data_size);
-    if (side_data_size) {
-        const AVContentLightMetadata *metadata =
-            (const AVContentLightMetadata*)side_data;
+                                        NULL);
+    if (side_data) {
+        const AVContentLightMetadata *metadata = side_data;
         put_ebml_uint(dyn_cp, MATROSKA_ID_VIDEOCOLORMAXCLL,  metadata->MaxCLL);
         put_ebml_uint(dyn_cp, MATROSKA_ID_VIDEOCOLORMAXFALL, metadata->MaxFALL);
     }
 
     side_data = av_stream_get_side_data(st, AV_PKT_DATA_MASTERING_DISPLAY_METADATA,
-                                        &side_data_size);
-    if (side_data_size == sizeof(AVMasteringDisplayMetadata)) {
+                                        NULL);
+    if (side_data) {
         ebml_master meta_element = start_ebml_master(
             dyn_cp, MATROSKA_ID_VIDEOCOLORMASTERINGMETA, 10 * (2 + 1 + 8));
-        const AVMasteringDisplayMetadata *metadata =
-            (const AVMasteringDisplayMetadata*)side_data;
+        const AVMasteringDisplayMetadata *metadata = side_data;
         if (metadata->has_primaries) {
             put_ebml_float(dyn_cp, MATROSKA_ID_VIDEOCOLOR_RX,
                            av_q2d(metadata->display_primaries[0][0]));
@@ -919,14 +917,13 @@ static void mkv_write_video_projection(AVFormatContext *s, AVIOContext *pb,
                                        const AVStream *st)
 {
     ebml_master projection;
-    int side_data_size = 0;
     uint8_t private[20];
 
     const AVSphericalMapping *spherical =
         (const AVSphericalMapping *)av_stream_get_side_data(st, AV_PKT_DATA_SPHERICAL,
-                                                            &side_data_size);
+                                                            NULL);
 
-    if (!side_data_size)
+    if (!spherical)
         return;
 
     if (spherical->projection != AV_SPHERICAL_EQUIRECTANGULAR      &&
@@ -1028,7 +1025,6 @@ static int mkv_write_stereo_mode(AVFormatContext *s, AVIOContext *pb,
     const AVDictionaryEntry *tag;
     MatroskaVideoStereoModeType format = MATROSKA_VIDEO_STEREOMODE_TYPE_NB;
     const AVStereo3D *stereo;
-    int side_data_size = 0;
 
     *h_width = 1;
     *h_height = 1;
@@ -1052,8 +1048,8 @@ static int mkv_write_stereo_mode(AVFormatContext *s, AVIOContext *pb,
     }
 
     stereo = (const AVStereo3D*)av_stream_get_side_data(st, AV_PKT_DATA_STEREO3D,
-                                                        &side_data_size);
-    if (side_data_size >= sizeof(AVStereo3D)) {
+                                                        NULL);
+    if (stereo) {
         switch (stereo->type) {
         case AV_STEREO3D_2D:
             format = MATROSKA_VIDEO_STEREOMODE_TYPE_MONO;
@@ -2011,7 +2007,7 @@ static int mkv_write_block(AVFormatContext *s, AVIOContext *pb,
     AVCodecParameters *par = s->streams[pkt->stream_index]->codecpar;
     mkv_track *track = &mkv->tracks[pkt->stream_index];
     uint8_t *data = NULL, *side_data = NULL;
-    int err = 0, offset = 0, size = pkt->size, side_data_size = 0;
+    int err = 0, offset = 0, size = pkt->size, side_data_size;
     int64_t ts = track->write_dts ? pkt->dts : pkt->pts;
     uint64_t additional_id;
     int64_t discard_padding = 0;
@@ -2122,17 +2118,17 @@ static int mkv_write_vtt_blocks(AVFormatContext *s, AVIOContext *pb, const AVPac
     mkv_track *track = &mkv->tracks[pkt->stream_index];
     ebml_master blockgroup;
     int id_size, settings_size, size;
-    uint8_t *id, *settings;
+    const char *id, *settings;
     int64_t ts = track->write_dts ? pkt->dts : pkt->pts;
     const int flags = 0;
 
-    id_size = 0;
     id = av_packet_get_side_data(pkt, AV_PKT_DATA_WEBVTT_IDENTIFIER,
                                  &id_size);
+    id = id ? id : "";
 
-    settings_size = 0;
     settings = av_packet_get_side_data(pkt, AV_PKT_DATA_WEBVTT_SETTINGS,
                                        &settings_size);
+    settings = settings ? settings : "";
 
     size = id_size + 1 + settings_size + 1 + pkt->size;
 
@@ -2186,7 +2182,7 @@ static int mkv_check_new_extra_data(AVFormatContext *s, const AVPacket *pkt)
     mkv_track *track        = &mkv->tracks[pkt->stream_index];
     AVCodecParameters *par  = s->streams[pkt->stream_index]->codecpar;
     uint8_t *side_data;
-    int side_data_size = 0, ret;
+    int side_data_size, ret;
 
     side_data = av_packet_get_side_data(pkt, AV_PKT_DATA_NEW_EXTRADATA,
                                         &side_data_size);
