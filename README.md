@@ -16,6 +16,12 @@ git push origin master
 Here's a list of modifications we've made to the original FFmpeg fork:
 - Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace sw_scale entirely in the GPU)
 
+We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser. This allows using FFmpeg in the browser.
+
+## Building
+
+To build targeting Emscripten, install and setup `docker` on your machine, then run `./docker-emcc-build`. The built static library will appear in the root of this directory.
+
 ---
 
 FFmpeg README
