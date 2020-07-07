@@ -22,6 +22,8 @@ We have also added a Docker script to compile FFmpeg targeting Emscripten, the w
 
 To build targeting Emscripten, install and setup `docker` on your machine, then run `./docker-emcc-build`. The built static library will appear in the root of this directory.
 
+To build FFmpeg inside of a docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of ubuntu you want to build it inside. Currently versions 18 and 20 are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively.
+
 ---
 
 FFmpeg README
