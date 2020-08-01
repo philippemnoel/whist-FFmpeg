@@ -1,15 +1,14 @@
 Fractal README
 =============
 
-This repository is Fractal's fork of FFmpeg, with a few modifications. To build this version of FFmpeg for Windows, refer to the [Fractal repository with Windows FFmpeg build tools](https://github.com/fractalcomputers/ffmpeg-windows-build-helpers). To build the Fractal version of FFmepg on Linux Ubuntu, please refer to [this document](https://docs.google.com/document/d/1HsY4_qABX1Drp5TENAqexesnTOvIV4Yv8GIGSDDPSuk/edit).
+This repository is Fractal's fork of FFmpeg, with a few modifications. To build this version of FFmpeg for Windows, refer to the [Fractal repository `ffmpeg-windows-build-helpers`](https://github.com/fractalcomputers/ffmpeg-windows-build-helpers). To build the Fractal version of FFmepg on Linux Ubuntu, please refer to [this document](https://docs.google.com/document/d/1HsY4_qABX1Drp5TENAqexesnTOvIV4Yv8GIGSDDPSuk/edit).
 
 Before building or modifying the code, you should pull the latest changes from the public `FFmpeg/FFmpeg` repository that this repository is forked from. This ensures we are always working with the latest FFmpeg code. You can do so by running:
 
 ```
-git clone https://github.com/fractalcomputers/FFmpeg.git
-cd FFmpeg
+git clone https://github.com/fractalcomputers/FFmpeg.git && cd FFmpeg
 git remote add public https://github.com/FFmpeg/FFmpeg.git
-git pull public master # Creates a merge commit
+git pull public master
 git push origin master
 ```
 
