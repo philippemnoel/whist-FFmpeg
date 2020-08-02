@@ -34,6 +34,7 @@
 #include "libavutil/replaygain.h"
 #include "libavutil/spherical.h"
 #include "libavutil/stereo3d.h"
+#include "libavutil/timecode.h"
 
 #include "avformat.h"
 
@@ -211,7 +212,7 @@ static void dump_paramchange(void *ctx, const AVPacketSideData *sd)
 
     return;
 fail:
-    av_log(ctx, AV_LOG_ERROR, "unknown param");
+    av_log(ctx, AV_LOG_ERROR, "unknown param\n");
 }
 
 /* replaygain side data*/
@@ -240,7 +241,7 @@ static void dump_replaygain(void *ctx, const AVPacketSideData *sd)
     const AVReplayGain *rg;
 
     if (sd->size < sizeof(*rg)) {
-        av_log(ctx, AV_LOG_ERROR, "invalid data");
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
         return;
     }
     rg = (const AVReplayGain *)sd->data;
@@ -256,7 +257,7 @@ static void dump_stereo3d(void *ctx, const AVPacketSideData *sd)
     const AVStereo3D *stereo;
 
     if (sd->size < sizeof(*stereo)) {
-        av_log(ctx, AV_LOG_ERROR, "invalid data");
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
         return;
     }
 
@@ -273,7 +274,7 @@ static void dump_audioservicetype(void *ctx, const AVPacketSideData *sd)
     const enum AVAudioServiceType *ast = (const enum AVAudioServiceType *)sd->data;
 
     if (sd->size < sizeof(*ast)) {
-        av_log(ctx, AV_LOG_ERROR, "invalid data");
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
         return;
     }
 
@@ -316,7 +317,7 @@ static void dump_cpb(void *ctx, const AVPacketSideData *sd)
     const AVCPBProperties *cpb = (const AVCPBProperties *)sd->data;
 
     if (sd->size < sizeof(*cpb)) {
-        av_log(ctx, AV_LOG_ERROR, "invalid data");
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
         return;
     }
 
@@ -369,7 +370,7 @@ static void dump_spherical(void *ctx, const AVCodecParameters *par,
     double yaw, pitch, roll;
 
     if (sd->size < sizeof(*spherical)) {
-        av_log(ctx, AV_LOG_ERROR, "invalid data");
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
         return;
     }
 
@@ -405,6 +406,22 @@ static void dump_dovi_conf(void *ctx, const AVPacketSideData *sd)
            dovi->el_present_flag,
            dovi->bl_present_flag,
            dovi->dv_bl_signal_compatibility_id);
+}
+
+static void dump_s12m_timecode(void *ctx, const AVPacketSideData *sd)
+{
+    const uint32_t *tc = (const uint32_t *)sd->data;
+
+    if ((sd->size != sizeof(uint32_t) * 4) || (tc[0] > 3)) {
+        av_log(ctx, AV_LOG_ERROR, "invalid data\n");
+        return;
+    }
+
+    for (int j = 1; j <= tc[0]; j++) {
+        char tcbuf[AV_TIMECODE_STR_SIZE];
+        av_timecode_make_smpte_tc_string(tcbuf, tc[j], 0);
+        av_log(ctx, AV_LOG_INFO, "timecode - %s%s", tcbuf, j != tc[0] ? ", " : "");
+    }
 }
 
 static void dump_sidedata(void *ctx, const AVStream *st, const char *indent)
@@ -472,6 +489,10 @@ static void dump_sidedata(void *ctx, const AVStream *st, const char *indent)
         case AV_PKT_DATA_DOVI_CONF:
             av_log(ctx, AV_LOG_INFO, "DOVI configuration record: ");
             dump_dovi_conf(ctx, sd);
+            break;
+        case AV_PKT_DATA_S12M_TIMECODE:
+            av_log(ctx, AV_LOG_INFO, "SMPTE ST 12-1:2014: ");
+            dump_s12m_timecode(ctx, sd);
             break;
         default:
             av_log(ctx, AV_LOG_INFO,
