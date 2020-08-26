@@ -15,6 +15,10 @@ docker run -it \
         --enable-static \
         --disable-shared \
         --disable-stripping \
+        --enable-zlib \
+        --enable-demuxer=image2 \
+        --enable-decoder=png \
+        --enable-protocol=file \
         --nm="llvm-nm -g" \
         --ar=emar \
         --cc=emcc \
