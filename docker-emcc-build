@@ -1,10 +1,10 @@
 #!/bin/bash
 
-docker pull trzeci/emscripten:1.38.45
+docker pull trzeci/emscripten
 docker run -it \
     --rm \
     -v $PWD:/src \
-    trzeci/emscripten:1.38.45 \
+    trzeci/emscripten \
     sh -c '''
     cd /src && \
     emconfigure ./configure \
@@ -15,6 +15,10 @@ docker run -it \
         --enable-static \
         --disable-shared \
         --disable-stripping \
+        --enable-zlib \
+        --enable-demuxer=image2 \
+        --enable-decoder=png \
+        --enable-protocol=file \
         --nm="llvm-nm -g" \
         --ar=emar \
         --cc=emcc \
