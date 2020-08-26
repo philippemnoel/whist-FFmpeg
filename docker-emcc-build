@@ -1,10 +1,10 @@
 #!/bin/bash
 
-docker pull trzeci/emscripten
+docker pull trzeci/emscripten:1.38.45
 docker run -it \
     --rm \
     -v $PWD:/src \
-    trzeci/emscripten \
+    trzeci/emscripten:1.38.45 \
     sh -c '''
     cd /src && \
     emconfigure ./configure \
