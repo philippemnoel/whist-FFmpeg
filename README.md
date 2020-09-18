@@ -13,7 +13,7 @@ git push origin master
 ```
 
 Here's a list of modifications we have made to the original FFmpeg fork:
-- Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace sw_scale entirely in the Nvidia GPU)
+- Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace `sw_scale` entirely in the Nvidia GPU)
 
 We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, this allows using FFmpeg in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04.
 
@@ -21,7 +21,7 @@ We have also added a Docker script to compile FFmpeg targeting Emscripten, the w
 
 ### Linux Ubuntu - Docker
 
-To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18 and 20 are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder.
+To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18, for Ubuntu 18.04, and 20, for Ubuntu 20.04, are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder.
 
 ### Emscripten
 
