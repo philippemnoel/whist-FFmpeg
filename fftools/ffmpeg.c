@@ -528,6 +528,7 @@ static void ffmpeg_cleanup(int ret)
         for (j = 0; j < fg->nb_outputs; j++) {
             OutputFilter *ofilter = fg->outputs[j];
 
+            avfilter_inout_free(&ofilter->out_tmp);
             av_freep(&ofilter->name);
             av_freep(&ofilter->formats);
             av_freep(&ofilter->channel_layouts);
@@ -1391,6 +1392,26 @@ static void do_video_stats(OutputStream *ost, int frame_size)
 
 static int init_output_stream(OutputStream *ost, char *error, int error_len);
 
+static int init_output_stream_wrapper(OutputStream *ost, unsigned int fatal)
+{
+    int ret = AVERROR_BUG;
+    char error[1024] = {0};
+
+    if (ost->initialized)
+        return 0;
+
+    ret = init_output_stream(ost, error, sizeof(error));
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Error initializing output stream %d:%d -- %s\n",
+               ost->file_index, ost->index, error);
+
+        if (fatal)
+            exit_program(1);
+    }
+
+    return ret;
+}
+
 static void finish_output_stream(OutputStream *ost)
 {
     OutputFile *of = output_files[ost->file_index];
@@ -1427,15 +1448,7 @@ static int reap_filters(int flush)
             continue;
         filter = ost->filter->filter;
 
-        if (!ost->initialized) {
-            char error[1024] = "";
-            ret = init_output_stream(ost, error, sizeof(error));
-            if (ret < 0) {
-                av_log(NULL, AV_LOG_ERROR, "Error initializing output stream %d:%d -- %s\n",
-                       ost->file_index, ost->index, error);
-                exit_program(1);
-            }
-        }
+        init_output_stream_wrapper(ost, 1);
 
         if (!ost->filtered_frame && !(ost->filtered_frame = av_frame_alloc())) {
             return AVERROR(ENOMEM);
@@ -1859,7 +1872,6 @@ static void flush_encoders(void)
         // Maybe we should just let encoding fail instead.
         if (!ost->initialized) {
             FilterGraph *fg = ost->filter->graph;
-            char error[1024] = "";
 
             av_log(NULL, AV_LOG_WARNING,
                    "Finishing stream %d:%d without any data written to it.\n",
@@ -1885,12 +1897,7 @@ static void flush_encoders(void)
                 finish_output_stream(ost);
             }
 
-            ret = init_output_stream(ost, error, sizeof(error));
-            if (ret < 0) {
-                av_log(NULL, AV_LOG_ERROR, "Error initializing output stream %d:%d -- %s\n",
-                       ost->file_index, ost->index, error);
-                exit_program(1);
-            }
+            init_output_stream_wrapper(ost, 1);
         }
 
         if (enc->codec_type != AVMEDIA_TYPE_VIDEO && enc->codec_type != AVMEDIA_TYPE_AUDIO)
@@ -3668,7 +3675,7 @@ static int transcode_init(void)
         if (output_streams[i]->filter)
             continue;
 
-        ret = init_output_stream(output_streams[i], error, sizeof(error));
+        ret = init_output_stream_wrapper(output_streams[i], 0);
         if (ret < 0)
             goto dump_format;
     }
@@ -4579,15 +4586,8 @@ static int transcode_step(void)
     }
 
     if (ost->filter && ost->filter->graph->graph) {
-        if (!ost->initialized) {
-            char error[1024] = {0};
-            ret = init_output_stream(ost, error, sizeof(error));
-            if (ret < 0) {
-                av_log(NULL, AV_LOG_ERROR, "Error initializing output stream %d:%d -- %s\n",
-                       ost->file_index, ost->index, error);
-                exit_program(1);
-            }
-        }
+        init_output_stream_wrapper(ost, 1);
+
         if ((ret = transcode_from_filter(ost->filter->graph, &ist)) < 0)
             return ret;
         if (!ist)

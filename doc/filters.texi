@@ -1408,6 +1408,8 @@ Set output gain.
 Set coefficients format.
 
 @table @samp
+@item sf
+analog transfer function
 @item tf
 digital transfer function
 @item zp
@@ -1421,8 +1423,16 @@ S-plane zeros/poles
 @end table
 
 @item process, r
-Set kind of processing.
-Can be @code{d} - direct or @code{s} - serial cascading. Default is @code{s}.
+Set type of processing.
+
+@table @samp
+@item d
+direct processing
+@item s
+serial processing
+@item p
+parallel processing
+@end table
 
 @item precision, e
 Set filtering precision.
@@ -1458,7 +1468,7 @@ displayed. This option is used only when @var{response} is enabled.
 Set video stream size. This option is used only when @var{response} is enabled.
 @end table
 
-Coefficients in @code{tf} format are separated by spaces and are in ascending
+Coefficients in @code{tf} and @code{sf} format are separated by spaces and are in ascending
 order.
 
 Coefficients in @code{zp} format are separated by spaces and order of coefficients
@@ -1482,6 +1492,12 @@ aiir=k=1:z=7.957584807809675810E-1 -2.575128568908332300 3.674839853930788710 -2
 Same as above but in @code{zp} format:
 @example
 aiir=k=0.79575848078096756:z=0.80918701+0.58773007i 0.80918701-0.58773007i 0.80884700+0.58784055i 0.80884700-0.58784055i:p=0.63892345+0.59951235i 0.63892345-0.59951235i 0.79582691+0.44198673i 0.79582691-0.44198673i:f=zp:r=s
+@end example
+
+@item
+Apply 3-rd order analog normalized Butterworth low-pass filter, using analog transfer function format:
+@example
+aiir=z=1.3057 0 0 0:p=1.3057 2.3892 2.1860 1:f=sf:r=d
 @end example
 @end itemize
 
@@ -1573,6 +1589,14 @@ Enabling it will normalize magnitude response at DC to 0dB.
 
 @item order, o
 Set the filter order, can be 1 or 2. Default is 2.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -2693,6 +2717,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -2756,6 +2788,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -2826,6 +2866,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -2884,6 +2932,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @section bs2b
@@ -3607,6 +3663,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Examples
@@ -4084,6 +4148,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -4410,6 +4482,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Examples
@@ -5530,6 +5610,14 @@ Specify which channels to filter, by default all available are filtered.
 @item normalize, n
 Normalize biquad coefficients, by default is disabled.
 Enabling it will normalize magnitude response at DC to 0dB.
+
+@item transform, a
+Set transform type of IIR filter.
+@table @option
+@item di
+@item dii
+@item tdii
+@end table
 @end table
 
 @subsection Commands
@@ -5798,7 +5886,7 @@ Below is a description of the currently available audio sources.
 Buffer audio frames, and make them available to the filter chain.
 
 This source is mainly intended for a programmatic use, in particular
-through the interface defined in @file{libavfilter/asrc_abuffer.h}.
+through the interface defined in @file{libavfilter/buffersrc.h}.
 
 It accepts the following parameters:
 @table @option
@@ -6004,6 +6092,13 @@ Specifies the sample rate, and defaults to 44100.
 @item nb_samples, n
 Set the number of samples per requested frames.
 
+@item duration, d
+Set the duration of the sourced audio. See
+@ref{time duration syntax,,the Time duration section in the ffmpeg-utils(1) manual,ffmpeg-utils}
+for the accepted syntax.
+
+If not specified, or the expressed duration is negative, the audio is
+supposed to be generated forever.
 @end table
 
 @subsection Examples
@@ -6397,12 +6492,6 @@ and a separate video created with @var{alphaextract}, you might use:
 @example
 movie=in_alpha.mkv [alpha]; [in][alpha] alphamerge [out]
 @end example
-
-Since this filter is designed for reconstruction, it operates on frame
-sequences without considering timestamps, and terminates when either
-input reaches end of stream. This will cause problems if your encoding
-pipeline drops frames. If you're trying to apply an image as an
-overlay to a video stream, consider the @var{overlay} filter instead.
 
 @section amplify
 
@@ -10162,6 +10251,12 @@ drawtext='fontfile=Linux Libertine O-40\:style=Semibold:text=FFmpeg'
 @end example
 
 @item
+Draw "Test Text" with font size dependent on height of the video.
+@example
+drawtext="text='Test Text': fontsize=h/30: x=(w-text_w)/2: y=(h-text_h*2)"
+@end example
+
+@item
 Print the date of a real-time encoding (see strftime(3)):
 @example
 drawtext='fontfile=FreeSans.ttf:text=%@{localtime\:%a %b %d %Y@}'
@@ -11864,6 +11959,9 @@ Display video size or number of audio channels in case of audio used by filter l
 
 @item rate
 Display video frame rate or sample rate in case of audio used by filter link.
+
+@item eof
+Display link output status.
 @end table
 
 @item rate, r
@@ -12870,7 +12968,7 @@ Default value: @code{"/usr/local/share/model/vmaf_v0.6.1.pkl"}
 Set the file path to be used to store logs.
 
 @item log_fmt
-Set the format of the log file (xml or json).
+Set the format of the log file (csv, json or xml).
 
 @item enable_transform
 This option can enable/disable the @code{score_transform} applied to the final predicted VMAF score,
@@ -18188,6 +18286,29 @@ Show envelope. Default is disabled.
 
 @item ecolor, ec
 Set envelope color. Default is @code{gold}.
+
+@item slide
+Set slide mode.
+
+Available values for slide is:
+@table @samp
+@item frame
+Draw new frame when right border is reached.
+
+@item replace
+Replace old columns with new ones.
+
+@item scroll
+Scroll from right to left.
+
+@item rscroll
+Scroll from left to right.
+
+@item picture
+Draw single picture.
+@end table
+
+Default is @code{replace}.
 @end table
 
 @section threshold
@@ -19406,6 +19527,9 @@ Set input horizontal/vertical/diagonal field of view. Values in degrees.
 
 If diagonal field of view is set it overrides horizontal and vertical field of view.
 @end table
+
+@item octahedron
+Octahedron projection.
 @end table
 
 @item interp
@@ -19435,6 +19559,8 @@ Spline16 interpolation.
 @item gauss
 @item gaussian
 Gaussian interpolation.
+@item mitchell
+Mitchell interpolation.
 @end table
 
 Default value is @b{@samp{line}}.
@@ -20448,6 +20574,11 @@ Set one of available transition effects:
 @item vuslice
 @item vdslice
 @item hblur
+@item fadegrays
+@item wipetl
+@item wipetr
+@item wipebl
+@item wipebr
 @end table
 Default transition effect is fade.
 
@@ -22232,7 +22363,7 @@ Below is a description of the currently available video sources.
 Buffer video frames, and make them available to the filter chain.
 
 This source is mainly intended for a programmatic use, in particular
-through the interface defined in @file{libavfilter/vsrc_buffer.h}.
+through the interface defined in @file{libavfilter/buffersrc.h}.
 
 It accepts the following parameters:
 
@@ -22492,6 +22623,17 @@ Set number of colors to use at once. Allowed range is from 2 to 8. Default value
 
 @item seed
 Set seed for picking gradient line points.
+
+@item duration, d
+Set the duration of the sourced video. See
+@ref{time duration syntax,,the Time duration section in the ffmpeg-utils(1) manual,ffmpeg-utils}
+for the accepted syntax.
+
+If not specified, or the expressed duration is negative, the video is
+supposed to be generated forever.
+
+@item speed
+Set speed of gradients rotation.
 @end table
 
 
@@ -22880,6 +23022,10 @@ for the accepted syntax.
 
 If not specified, or the expressed duration is negative, the video is
 supposed to be generated forever.
+
+Since the frame rate is used as time base, all frames including the last one
+will have their full duration. If the specified duration is not a multiple
+of the frame duration, it will be rounded up.
 
 @item sar
 Set the sample aspect ratio of the sourced video.

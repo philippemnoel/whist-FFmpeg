@@ -76,6 +76,10 @@ static int64_t io_seek(void *opaque, int64_t offset, int whence)
     }
     if (offset < 0 || offset > c->filesize)
         return -1;
+    if (IO_FLAT) {
+        c->fuzz      += offset - c->pos;
+        c->fuzz_size -= offset - c->pos;
+    }
     c->pos = offset;
     return 0;
 }
@@ -99,6 +103,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     static int c;
     int seekable = 0;
     int ret;
+    AVInputFormat *fmt = NULL;
+#ifdef FFMPEG_DEMUXER
+#define DEMUXER_SYMBOL0(DEMUXER) ff_##DEMUXER##_demuxer
+#define DEMUXER_SYMBOL(DEMUXER) DEMUXER_SYMBOL0(DEMUXER)
+    extern AVInputFormat DEMUXER_SYMBOL(FFMPEG_DEMUXER);
+    fmt = &DEMUXER_SYMBOL(FFMPEG_DEMUXER);
+#endif
 
     if (!c) {
         av_register_all();
@@ -110,7 +121,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (!avfmt)
         error("Failed avformat_alloc_context()");
 
-    if (size > 2048) {
+    if (IO_FLAT) {
+        seekable = 1;
+        io_buffer_size = size;
+    } else if (size > 2048) {
         int flags;
         char extension[64];
 
@@ -159,7 +173,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     avfmt->pb = fuzzed_pb;
 
-    ret = avformat_open_input(&avfmt, filename, NULL, NULL);
+    ret = avformat_open_input(&avfmt, filename, fmt, NULL);
     if (ret < 0) {
         av_freep(&fuzzed_pb->buffer);
         av_freep(&fuzzed_pb);

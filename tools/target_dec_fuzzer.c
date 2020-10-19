@@ -145,10 +145,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     maxpixels = maxpixels_per_frame * maxiteration;
     maxsamples = maxsamples_per_frame * maxiteration;
     switch (c->id) {
+    case AV_CODEC_ID_AGM:         maxpixels  /= 1024;  break;
     case AV_CODEC_ID_BINKVIDEO:   maxpixels  /= 32;    break;
     case AV_CODEC_ID_CFHD:        maxpixels  /= 128;   break;
     case AV_CODEC_ID_DIRAC:       maxpixels  /= 8192;  break;
-    case AV_CODEC_ID_DST:         maxsamples /= 8192;  break;
+    case AV_CODEC_ID_DST:         maxsamples /= 1<<20; break;
     case AV_CODEC_ID_DXV:         maxpixels  /= 32;    break;
     case AV_CODEC_ID_FFWAVESYNTH: maxsamples /= 16384; break;
     case AV_CODEC_ID_G2M:         maxpixels  /= 64;    break;
@@ -179,9 +180,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     case AV_CODEC_ID_TRUEMOTION2: maxpixels  /= 1024;  break;
     case AV_CODEC_ID_VP7:         maxpixels  /= 256;   break;
     case AV_CODEC_ID_VP9:         maxpixels  /= 4096;  break;
+    case AV_CODEC_ID_WMV3IMAGE:   maxpixels  /= 8192;  break;
+    case AV_CODEC_ID_WS_VQA:      maxpixels  /= 16384; break;
     case AV_CODEC_ID_ZEROCODEC:   maxpixels  /= 128;   break;
     }
 
+    maxsamples_per_frame = FFMIN(maxsamples_per_frame, maxsamples);
 
     AVCodecContext* ctx = avcodec_alloc_context3(c);
     AVCodecContext* parser_avctx = avcodec_alloc_context3(NULL);
@@ -339,6 +343,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 ctx->error_concealment = 0;
             if (ec_pixels > maxpixels)
                 goto maximums_reached;
+
+            if (ctx->codec_type == AVMEDIA_TYPE_AUDIO &&
+                frame->nb_samples == 0 && !got_frame &&
+                (avpkt.flags & AV_PKT_FLAG_DISCARD))
+                nb_samples += ctx->max_samples;
 
             nb_samples += frame->nb_samples;
             if (nb_samples > maxsamples)

@@ -31,6 +31,7 @@
 #include "libavutil/avassert.h"
 #include "libavutil/mem.h"
 #include "libavutil/pixdesc.h"
+#include "atsc_a53.h"
 #include "encode.h"
 #include "internal.h"
 #include "packet_internal.h"
@@ -151,8 +152,14 @@ static int nvenc_print_error(AVCodecContext *avctx, NVENCSTATUS err,
 
 static void nvenc_print_driver_requirement(AVCodecContext *avctx, int level)
 {
-#if NVENCAPI_CHECK_VERSION(10, 1)
+#if NVENCAPI_CHECK_VERSION(11, 1)
     const char *minver = "(unknown)";
+#elif NVENCAPI_CHECK_VERSION(11, 0)
+# if defined(_WIN32) || defined(__CYGWIN__)
+    const char *minver = "456.71";
+# else
+    const char *minver = "455.28";
+# endif
 #elif NVENCAPI_CHECK_VERSION(10, 0)
 # if defined(_WIN32) || defined(__CYGWIN__)
     const char *minver = "450.51";
@@ -2218,7 +2225,7 @@ static int nvenc_send_frame(AVCodecContext *avctx, const AVFrame *frame)
             void *tc_data = NULL;
             size_t tc_size = 0;
 
-            if (ff_alloc_timecode_sei(frame, 0, (void**)&tc_data, &tc_size) < 0) {
+            if (ff_alloc_timecode_sei(frame, avctx->framerate, 0, (void**)&tc_data, &tc_size) < 0) {
                 av_log(ctx, AV_LOG_ERROR, "Not enough memory for timecode sei, skipping\n");
             }
 

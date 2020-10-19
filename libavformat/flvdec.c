@@ -495,6 +495,8 @@ static int amf_parse_object(AVFormatContext *s, AVStream *astream,
 
     num_val  = 0;
     ioc      = s->pb;
+    if (avio_feof(ioc))
+        return AVERROR_EOF;
     amf_type = avio_r8(ioc);
 
     switch (amf_type) {
@@ -715,7 +717,7 @@ static int flv_read_metabody(AVFormatContext *s, int64_t next_pos)
     if (!strcmp(buffer, "onCaptionInfo"))
         return TYPE_ONCAPTIONINFO;
 
-    if (strcmp(buffer, "onMetaData") && strcmp(buffer, "onCuePoint")) {
+    if (strcmp(buffer, "onMetaData") && strcmp(buffer, "onCuePoint") && strcmp(buffer, "|RtmpSampleAccess")) {
         av_log(s, AV_LOG_DEBUG, "Unknown type %s\n", buffer);
         return TYPE_UNKNOWN;
     }
