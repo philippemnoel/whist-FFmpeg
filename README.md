@@ -1,3 +1,41 @@
+Fractal README
+=============
+
+This repository is Fractal's fork of FFmpeg, with a few modifications.
+
+Before building or modifying the code, you should pull the latest changes from the public [`FFmpeg/FFmpeg`](https://github.com/FFmpeg/FFmpeg) repository that this repository is forked from. This ensures we are always working with the latest FFmpeg code. You can do so by running: 
+
+```
+git clone https://github.com/fractal/FFmpeg.git && cd FFmpeg
+git remote add public https://github.com/FFmpeg/FFmpeg.git
+git pull public master
+git push origin master
+```
+
+## Fractal Changelog
+
+Here's a list of modifications we have made to the original FFmpeg fork:
+
+- Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace `sw_scale` entirely in the Nvidia GPU) 
+
+We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
+
+## Building
+
+### Windows
+
+To build this version of FFmpeg for Windows, refer to the Fractal repository [`ffmpeg-windows-build-helpers`](https://github.com/fractal/ffmpeg-windows-build-helpers).
+
+### Linux Ubuntu - Docker
+
+To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18, for Ubuntu 18.04, and 20, for Ubuntu 20.04, are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder.
+
+### Emscripten
+
+To build targeting Emscripten, install and setup `docker` on your machine, then run `./docker-emcc-build`. The built static library will appear in the root of this directory.
+
+---
+
 FFmpeg README
 =============
 
