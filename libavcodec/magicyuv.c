@@ -89,6 +89,7 @@ static int huff_build(HuffEntry he[], uint16_t codes_count[33],
         he[i].code = codes_count[he[i].len];
         codes_count[he[i].len]++;
     }
+    ff_free_vlc(vlc);
     return init_vlc(vlc, FFMIN(max, 12), nb_elems,
                     &he[0].len,  sizeof(he[0]), sizeof(he[0].len),
                     &he[0].code, sizeof(he[0]), sizeof(he[0].code), 0);
@@ -623,6 +624,9 @@ static int magy_decode_frame(AVCodecContext *avctx, void *data,
 
         s->slices[i][j].start = offset + header_size;
         s->slices[i][j].size  = avpkt->size - s->slices[i][j].start;
+
+        if (s->slices[i][j].size < 2)
+            return AVERROR_INVALIDDATA;
     }
 
     if (bytestream2_get_byteu(&gb) != s->planes)

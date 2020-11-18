@@ -223,6 +223,9 @@ static int parse_dsd_diin(AVFormatContext *s, AVStream *st, uint64_t eof)
         uint64_t orig_pos = avio_tell(pb);
         const char * metadata_tag = NULL;
 
+        if (size >= INT64_MAX)
+            return AVERROR_INVALIDDATA;
+
         switch(tag) {
         case MKTAG('D','I','A','R'): metadata_tag = "artist"; break;
         case MKTAG('D','I','T','I'): metadata_tag = "title";  break;
@@ -839,7 +842,7 @@ static int iff_read_packet(AVFormatContext *s,
         } else if (st->codecpar->codec_tag == ID_DST) {
             return read_dst_frame(s, pkt);
         } else {
-            if (iff->body_size > INT_MAX)
+            if (iff->body_size > INT_MAX || !iff->body_size)
                 return AVERROR_INVALIDDATA;
             ret = av_get_packet(pb, pkt, iff->body_size);
         }
@@ -875,6 +878,8 @@ static int iff_read_packet(AVFormatContext *s,
             pkt->flags |= AV_PKT_FLAG_KEY;
     } else if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
                st->codecpar->codec_tag  != ID_ANIM) {
+        if (iff->body_size > INT_MAX || !iff->body_size)
+            return AVERROR_INVALIDDATA;
         ret = av_get_packet(pb, pkt, iff->body_size);
         pkt->pos = pos;
         if (pos == iff->body_pos)

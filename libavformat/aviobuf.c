@@ -40,7 +40,7 @@
  * data instead of calling the protocol seek function, for seekable
  * protocols.
  */
-#define SHORT_SEEK_THRESHOLD 4096
+#define SHORT_SEEK_THRESHOLD 32768
 
 static void *ff_avio_child_next(void *obj, void *prev)
 {
@@ -686,9 +686,11 @@ int avio_read(AVIOContext *s, unsigned char *buf, int size)
 int ffio_read_size(AVIOContext *s, unsigned char *buf, int size)
 {
     int ret = avio_read(s, buf, size);
-    if (ret != size)
-        return AVERROR_INVALIDDATA;
-    return ret;
+    if (ret == size)
+        return ret;
+    if (ret < 0 && ret != AVERROR_EOF)
+        return ret;
+    return AVERROR_INVALIDDATA;
 }
 
 int ffio_read_indirect(AVIOContext *s, unsigned char *buf, int size, const unsigned char **data)

@@ -26,54 +26,6 @@
 #include "internal.h"
 #include "profiles.h"
 
-static void setup_past_independence(AV1Frame *f)
-{
-    f->loop_filter_delta_enabled = 1;
-
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_INTRA] = 1;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_LAST] = 0;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_LAST2] = 0;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_LAST3] = 0;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_GOLDEN] = -1;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_BWDREF] = 0;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_ALTREF2] = -1;
-    f->loop_filter_ref_deltas[AV1_REF_FRAME_ALTREF] = -1;
-
-    f->loop_filter_mode_deltas[0] = 0;
-    f->loop_filter_mode_deltas[1] = 0;
-}
-
-static void load_previous_and_update(AV1DecContext *s)
-{
-    uint8_t primary_frame, prev_frame;
-
-    primary_frame = s->raw_frame_header->primary_ref_frame;
-    prev_frame = s->raw_frame_header->ref_frame_idx[primary_frame];
-    memcpy(s->cur_frame.loop_filter_ref_deltas,
-           s->ref[prev_frame].loop_filter_ref_deltas,
-           AV1_NUM_REF_FRAMES * sizeof(int8_t));
-    memcpy(s->cur_frame.loop_filter_mode_deltas,
-           s->ref[prev_frame].loop_filter_mode_deltas,
-           2 * sizeof(int8_t));
-
-    if (s->raw_frame_header->loop_filter_delta_update) {
-        for (int i = 0; i < AV1_NUM_REF_FRAMES; i++) {
-            if (s->raw_frame_header->update_ref_delta[i])
-                s->cur_frame.loop_filter_ref_deltas[i] =
-                    s->raw_frame_header->loop_filter_ref_deltas[i];
-        }
-
-        for (int i = 0; i < 2; i++) {
-            if (s->raw_frame_header->update_mode_delta[i])
-                s->cur_frame.loop_filter_mode_deltas[i] =
-                    s->raw_frame_header->loop_filter_mode_deltas[i];
-        }
-    }
-
-    s->cur_frame.loop_filter_delta_enabled =
-        s->raw_frame_header->loop_filter_delta_enabled;
-}
-
 static uint32_t inverse_recenter(int r, uint32_t v)
 {
     if (v > 2 * r)
@@ -105,12 +57,21 @@ static void read_global_param(AV1DecContext *s, int type, int ref, int idx)
 {
     uint8_t primary_frame, prev_frame;
     uint32_t abs_bits, prec_bits, round, prec_diff, sub, mx;
-    int32_t r;
+    int32_t r, prev_gm_param;
 
     primary_frame = s->raw_frame_header->primary_ref_frame;
     prev_frame = s->raw_frame_header->ref_frame_idx[primary_frame];
     abs_bits = AV1_GM_ABS_ALPHA_BITS;
     prec_bits = AV1_GM_ALPHA_PREC_BITS;
+
+    /* setup_past_independence() sets PrevGmParams to default values. We can
+     * simply point to the current's frame gm_params as they will be initialized
+     * with defaults at this point.
+     */
+    if (s->raw_frame_header->primary_ref_frame == AV1_PRIMARY_REF_NONE)
+        prev_gm_param = s->cur_frame.gm_params[ref][idx];
+    else
+        prev_gm_param = s->ref[prev_frame].gm_params[ref][idx];
 
     if (idx < 2) {
         if (type == AV1_WARP_MODEL_TRANSLATION) {
@@ -127,7 +88,7 @@ static void read_global_param(AV1DecContext *s, int type, int ref, int idx)
     prec_diff = AV1_WARPEDMODEL_PREC_BITS - prec_bits;
     sub = (idx % 3) == 2 ? (1 << prec_bits) : 0;
     mx = 1 << abs_bits;
-    r = (s->ref[prev_frame].gm_params[ref][idx] >> prec_diff) - sub;
+    r = (prev_gm_param >> prec_diff) - sub;
 
     s->cur_frame.gm_params[ref][idx] =
         (decode_signed_subexp_with_ref(s->raw_frame_header->gm_params[ref][idx],
@@ -180,6 +141,108 @@ static void global_motion_params(AV1DecContext *s)
         if (type >= AV1_WARP_MODEL_TRANSLATION) {
             read_global_param(s, type, ref, 0);
             read_global_param(s, type, ref, 1);
+        }
+    }
+}
+
+static int get_relative_dist(const AV1RawSequenceHeader *seq,
+                             unsigned int a, unsigned int b)
+{
+    unsigned int diff = a - b;
+    unsigned int m = 1 << seq->order_hint_bits_minus_1;
+    return (diff & (m - 1)) - (diff & m);
+}
+
+static void skip_mode_params(AV1DecContext *s)
+{
+    const AV1RawFrameHeader *header = s->raw_frame_header;
+    const AV1RawSequenceHeader *seq = s->raw_seq;
+
+    int forward_idx,  backward_idx;
+    int forward_hint, backward_hint;
+    int second_forward_idx, second_forward_hint;
+    int ref_hint, dist, i;
+
+    if (!header->skip_mode_present)
+        return;
+
+    forward_idx  = -1;
+    backward_idx = -1;
+    for (i = 0; i < AV1_REFS_PER_FRAME; i++) {
+        ref_hint = s->ref[header->ref_frame_idx[i]].raw_frame_header->order_hint;
+        dist = get_relative_dist(seq, ref_hint, header->order_hint);
+        if (dist < 0) {
+            if (forward_idx < 0 ||
+                get_relative_dist(seq, ref_hint, forward_hint) > 0) {
+                forward_idx  = i;
+                forward_hint = ref_hint;
+            }
+        } else if (dist > 0) {
+            if (backward_idx < 0 ||
+                get_relative_dist(seq, ref_hint, backward_hint) < 0) {
+                backward_idx  = i;
+                backward_hint = ref_hint;
+            }
+        }
+    }
+
+    if (forward_idx < 0) {
+        return;
+    } else if (backward_idx >= 0) {
+        s->cur_frame.skip_mode_frame_idx[0] =
+            AV1_REF_FRAME_LAST + FFMIN(forward_idx, backward_idx);
+        s->cur_frame.skip_mode_frame_idx[1] =
+            AV1_REF_FRAME_LAST + FFMAX(forward_idx, backward_idx);
+        return;
+    }
+
+    second_forward_idx = -1;
+    for (i = 0; i < AV1_REFS_PER_FRAME; i++) {
+        ref_hint = s->ref[header->ref_frame_idx[i]].raw_frame_header->order_hint;
+        if (get_relative_dist(seq, ref_hint, forward_hint) < 0) {
+            if (second_forward_idx < 0 ||
+                get_relative_dist(seq, ref_hint, second_forward_hint) > 0) {
+                second_forward_idx  = i;
+                second_forward_hint = ref_hint;
+            }
+        }
+    }
+
+    if (second_forward_idx < 0)
+        return;
+
+    s->cur_frame.skip_mode_frame_idx[0] =
+        AV1_REF_FRAME_LAST + FFMIN(forward_idx, second_forward_idx);
+    s->cur_frame.skip_mode_frame_idx[1] =
+        AV1_REF_FRAME_LAST + FFMAX(forward_idx, second_forward_idx);
+}
+
+static void coded_lossless_param(AV1DecContext *s)
+{
+    const AV1RawFrameHeader *header = s->raw_frame_header;
+    int i;
+
+    if (header->delta_q_y_dc || header->delta_q_u_ac ||
+        header->delta_q_u_dc || header->delta_q_v_ac ||
+        header->delta_q_v_dc) {
+        s->cur_frame.coded_lossless = 0;
+        return;
+    }
+
+    s->cur_frame.coded_lossless = 1;
+    for (i = 0; i < AV1_MAX_SEGMENTS; i++) {
+        int qindex;
+        if (header->feature_enabled[i][AV1_SEG_LVL_ALT_Q]) {
+            qindex = (header->base_q_idx +
+                      header->feature_value[i][AV1_SEG_LVL_ALT_Q]);
+        } else {
+            qindex = header->base_q_idx;
+        }
+        qindex = av_clip_uintp2(qindex, 8);
+
+        if (qindex) {
+            s->cur_frame.coded_lossless = 0;
+            return;
         }
     }
 }
@@ -254,7 +317,10 @@ static int get_pixel_format(AVCodecContext *avctx)
     uint8_t bit_depth;
     int ret;
     enum AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
-#define HWACCEL_MAX (0)
+#define HWACCEL_MAX (CONFIG_AV1_DXVA2_HWACCEL + \
+                     CONFIG_AV1_D3D11VA_HWACCEL * 2 + \
+                     CONFIG_AV1_NVDEC_HWACCEL + \
+                     CONFIG_AV1_VAAPI_HWACCEL)
     enum AVPixelFormat pix_fmts[HWACCEL_MAX + 2], *fmtp = pix_fmts;
 
     if (seq->seq_profile == 2 && seq->color_config.high_bitdepth)
@@ -315,6 +381,39 @@ static int get_pixel_format(AVCodecContext *avctx)
         return -1;
     s->pix_fmt = pix_fmt;
 
+    switch (s->pix_fmt) {
+    case AV_PIX_FMT_YUV420P:
+#if CONFIG_AV1_DXVA2_HWACCEL
+        *fmtp++ = AV_PIX_FMT_DXVA2_VLD;
+#endif
+#if CONFIG_AV1_D3D11VA_HWACCEL
+        *fmtp++ = AV_PIX_FMT_D3D11VA_VLD;
+        *fmtp++ = AV_PIX_FMT_D3D11;
+#endif
+#if CONFIG_AV1_NVDEC_HWACCEL
+        *fmtp++ = AV_PIX_FMT_CUDA;
+#endif
+#if CONFIG_AV1_VAAPI_HWACCEL
+        *fmtp++ = AV_PIX_FMT_VAAPI;
+#endif
+        break;
+    case AV_PIX_FMT_YUV420P10:
+#if CONFIG_AV1_DXVA2_HWACCEL
+        *fmtp++ = AV_PIX_FMT_DXVA2_VLD;
+#endif
+#if CONFIG_AV1_D3D11VA_HWACCEL
+        *fmtp++ = AV_PIX_FMT_D3D11VA_VLD;
+        *fmtp++ = AV_PIX_FMT_D3D11;
+#endif
+#if CONFIG_AV1_NVDEC_HWACCEL
+        *fmtp++ = AV_PIX_FMT_CUDA;
+#endif
+#if CONFIG_AV1_VAAPI_HWACCEL
+        *fmtp++ = AV_PIX_FMT_VAAPI;
+#endif
+        break;
+    }
+
     *fmtp++ = s->pix_fmt;
     *fmtp = AV_PIX_FMT_NONE;
 
@@ -343,7 +442,12 @@ static void av1_frame_unref(AVCodecContext *avctx, AV1Frame *f)
     ff_thread_release_buffer(avctx, &f->tf);
     av_buffer_unref(&f->hwaccel_priv_buf);
     f->hwaccel_picture_private = NULL;
+    av_buffer_unref(&f->header_ref);
+    f->raw_frame_header = NULL;
     f->spatial_id = f->temporal_id = 0;
+    memset(f->skip_mode_frame_idx, 0,
+           2 * sizeof(uint8_t));
+    f->coded_lossless = 0;
 }
 
 static int av1_frame_ref(AVCodecContext *avctx, AV1Frame *dst, const AV1Frame *src)
@@ -354,6 +458,12 @@ static int av1_frame_ref(AVCodecContext *avctx, AV1Frame *dst, const AV1Frame *s
     if (ret < 0)
         return ret;
 
+    dst->header_ref = av_buffer_ref(src->header_ref);
+    if (!dst->header_ref)
+        goto fail;
+
+    dst->raw_frame_header = src->raw_frame_header;
+
     if (src->hwaccel_picture_private) {
         dst->hwaccel_priv_buf = av_buffer_ref(src->hwaccel_priv_buf);
         if (!dst->hwaccel_priv_buf)
@@ -363,19 +473,16 @@ static int av1_frame_ref(AVCodecContext *avctx, AV1Frame *dst, const AV1Frame *s
 
     dst->spatial_id = src->spatial_id;
     dst->temporal_id = src->temporal_id;
-    dst->loop_filter_delta_enabled = src->loop_filter_delta_enabled;
-    memcpy(dst->loop_filter_ref_deltas,
-           src->loop_filter_ref_deltas,
-           AV1_NUM_REF_FRAMES * sizeof(int8_t));
-    memcpy(dst->loop_filter_mode_deltas,
-           src->loop_filter_mode_deltas,
-           2 * sizeof(int8_t));
     memcpy(dst->gm_type,
            src->gm_type,
            AV1_NUM_REF_FRAMES * sizeof(uint8_t));
     memcpy(dst->gm_params,
            src->gm_params,
            AV1_NUM_REF_FRAMES * 6 * sizeof(int32_t));
+    memcpy(dst->skip_mode_frame_idx,
+           src->skip_mode_frame_idx,
+           2 * sizeof(uint8_t));
+    dst->coded_lossless = src->coded_lossless;
 
     return 0;
 
@@ -542,6 +649,12 @@ static int av1_frame_alloc(AVCodecContext *avctx, AV1Frame *f)
     AVFrame *frame;
     int ret;
 
+    f->header_ref = av_buffer_ref(s->header_ref);
+    if (!f->header_ref)
+        return AVERROR(ENOMEM);
+
+    f->raw_frame_header = s->raw_frame_header;
+
     ret = update_context_with_frame_header(avctx, header);
     if (ret < 0) {
         av_log(avctx, AV_LOG_ERROR, "Failed to update context with frame header\n");
@@ -645,12 +758,9 @@ static int get_current_frame(AVCodecContext *avctx)
         return ret;
     }
 
-    if (s->raw_frame_header->primary_ref_frame == AV1_PRIMARY_REF_NONE)
-        setup_past_independence(&s->cur_frame);
-    else
-        load_previous_and_update(s);
-
     global_motion_params(s);
+    skip_mode_params(s);
+    coded_lossless_param(s);
 
     return ret;
 }
@@ -673,7 +783,12 @@ static int av1_decode_frame(AVCodecContext *avctx, void *frame,
     for (int i = 0; i < s->current_obu.nb_units; i++) {
         CodedBitstreamUnit *unit = &s->current_obu.units[i];
         AV1RawOBU *obu = unit->content;
-        const AV1RawOBUHeader *header = &obu->header;
+        const AV1RawOBUHeader *header;
+
+        if (!obu)
+            continue;
+
+        header = &obu->header;
         av_log(avctx, AV_LOG_DEBUG, "Obu idx:%d, obu type:%d.\n", i, unit->type);
 
         switch (unit->type) {
@@ -886,6 +1001,21 @@ AVCodec ff_av1_decoder = {
     .flush                 = av1_decode_flush,
     .profiles              = NULL_IF_CONFIG_SMALL(ff_av1_profiles),
     .hw_configs            = (const AVCodecHWConfigInternal * []) {
+#if CONFIG_AV1_DXVA2_HWACCEL
+        HWACCEL_DXVA2(av1),
+#endif
+#if CONFIG_AV1_D3D11VA_HWACCEL
+        HWACCEL_D3D11VA(av1),
+#endif
+#if CONFIG_AV1_D3D11VA2_HWACCEL
+        HWACCEL_D3D11VA2(av1),
+#endif
+#if CONFIG_AV1_NVDEC_HWACCEL
+        HWACCEL_NVDEC(av1),
+#endif
+#if CONFIG_AV1_VAAPI_HWACCEL
+        HWACCEL_VAAPI(av1),
+#endif
         NULL
     },
 };
