@@ -3,13 +3,38 @@ Fractal README
 
 This repository is Fractal's fork of FFmpeg, with a few modifications.
 
-Before building or modifying the code, you should pull the latest changes from the public [`FFmpeg/FFmpeg`](https://github.com/FFmpeg/FFmpeg) repository that this repository is forked from. This ensures we are always working with the latest FFmpeg code. You can do so by running: 
+Before building or modifying the code, you should pull the latest changes from the public [`FFmpeg/FFmpeg`](https://github.com/FFmpeg/FFmpeg) repository that this repository is forked from. To setup your repository, follow these steps: 
 
+1. Clone and enter the repository
 ```
-git clone https://github.com/fractal/FFmpeg.git && cd FFmpeg
-git remote add public https://github.com/FFmpeg/FFmpeg.git
-git pull public master
-git push origin master
+git clone https://github.com/fractal/FFmpeg && cd FFmpeg
+```
+2. Add the upstream repository as a remote
+```
+git remote add upstream https://github.com/FFmpeg/FFmpeg
+```
+3. Disable pushing to upstream FFmpeg
+```
+git remote set-url --push upstream DISABLE
+```
+After this, you should be able to list your remotes with `git remote -v` if you ever need to debug.
+
+Since FFmpeg is a large and active project, we will very often want to work with the latest upstream code; meanwhile, we need to make sure that our own repository has a sane commit history -- we cannot simply periodically merge the latest FFmpeg on top of our own modifications.
+
+Instead, perform the following steps to incorporate changes from upstream:
+
+1. Fetch the latest changes to the `upstream` remote
+```
+git fetch upstream
+```
+2. Rebase on top of your current work
+```
+git rebase upstream/master
+# git rebase upstream/<desired branch> for other upstream branches
+```
+3. Resolve merge conflicts, if any arise, and push to the Fractal FFmpeg repository
+```
+git push origin <current branch>
 ```
 
 ## Fractal Changelog
