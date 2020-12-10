@@ -25,24 +25,24 @@ jobs:
 
         steps: 
             - name: Checkout git repository
-                uses: actions/checkout@v2
-                with:
-                    persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-                    fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
+              uses: actions/checkout@v2
+              with:
+                persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+                fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
             - name: Install Xcode CLI
-            run: xcode-select --install
+              run: xcode-select --install
 
             - name: Install Homebrew
-            run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+              run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
             - name: Install FFmpeg macOS Dependencies
-            run: |
+              run: |
                 brew install automake fdk-aac git lame libass libtool libvorbis libvpx \ 
                 opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
             - name: Configure and Make FFmpeg
-            run: |
+              run: |
                 ./configure \
                 --prefix=/usr/local --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype \
                 --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 \ 
