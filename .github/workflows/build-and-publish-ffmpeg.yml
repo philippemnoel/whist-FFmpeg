@@ -6,7 +6,7 @@
 name: "Fractal: Build & Publish FFmpeg"
 
 on:
-    push:
+    pull_request:
         branches: [master, phil/ci]
         paths:
             - "!README.md"
@@ -19,6 +19,7 @@ jobs:
 
         # Platforms to build on/for 
         #    os: [macos-10.14, ubuntu-18.04, windows-2016]
+        # need to change pull_request to push to master
         strategy:
             matrix:
                 os: [macos-10.14]
