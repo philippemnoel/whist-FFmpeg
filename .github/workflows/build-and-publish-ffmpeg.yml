@@ -18,10 +18,10 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         # Platforms to build on/for 
+        #    os: [macos-10.14, ubuntu-18.04, windows-2016]
         strategy:
             matrix:
                 os: [macos-10.14]
-            #    os: [macos-10.14, ubuntu-18.04, windows-2016]
 
         - name: Checkout git repository
             uses: actions/checkout@v2
