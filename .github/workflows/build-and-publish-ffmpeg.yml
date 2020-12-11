@@ -11,8 +11,8 @@ on:
     workflow_dispatch:
     pull_request:
         branches: [master, phil/ci]
-        paths:
-            - "!README.md"
+        paths-ignore:
+            - "README.md"
 
 jobs:
     build-and-publish-macos-ffmpeg:
