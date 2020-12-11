@@ -31,10 +31,18 @@ jobs:
             - name: Install Homebrew
               run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
+            - name: Set proper Homebrew folder permissions for linking
+              run: |
+                sudo chown -R `whoami`:admin /usr/local/bin
+                sudo chown -R `whoami`:admin /usr/local/share
+                sudo chown -R `whoami`:admin /usr/local/opt
+
             - name: Install FFmpeg macOS Dependencies
               run: |
                 brew install automake fdk-aac git lame libass libtool libvorbis libvpx \
                 opus sdl shtool texi2html theora wget x264 x265 xvid nasm
+
+            # texi2html
 
             - name: Configure and Make FFmpeg
               run: |
@@ -60,6 +68,17 @@ jobs:
               with:
                 persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
                 fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
+
+            - name: Checkout Media Autobuild Suite
+              uses: actions/checkout@v2
+              with:
+                repository: m-ab-s/media-autobuild_suite
+                token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }} 
+
+            - name: Run media-autobuild_suite.bat
+              run: Start-Process media-autobuild_suite.bat
+              shell: powershell
+
 
 
 
