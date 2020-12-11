@@ -26,8 +26,7 @@ jobs:
                 persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
                 fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
-            - name: Install Xcode CLI
-              run: xcode-select --install
+            # XCode CLI is already installed, so no need to run `xcode-select --install`
 
             - name: Install Homebrew
               run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
