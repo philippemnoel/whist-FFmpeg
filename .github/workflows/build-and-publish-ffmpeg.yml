@@ -75,8 +75,11 @@ jobs:
                 repository: m-ab-s/media-autobuild_suite
                 token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }} 
 
+
+
+            # echo 3 to build for 64-bit systems
             - name: Run media-autobuild_suite.bat
-              run: .\media-autobuild_suite.bat
+              run: echo 3 | .\media-autobuild_suite.bat
               shell: powershell
 
 
