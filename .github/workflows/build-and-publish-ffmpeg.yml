@@ -50,7 +50,7 @@ jobs:
                 --prefix=/usr/local --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype \
                 --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 \
                 --enable-libopus --enable-libxvid --samples=fate-suite \
-                make
+                && make
 
             # TODO: find where the .dylibs are, zip them and upload them to S3
 
@@ -76,7 +76,7 @@ jobs:
                 token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }} 
 
             - name: Run media-autobuild_suite.bat
-              run: Start-Process media-autobuild_suite.bat
+              run: .\media-autobuild_suite.bat
               shell: powershell
 
 
