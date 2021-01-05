@@ -1,79 +1,153 @@
 # workflows/build-and-publish.yml
 #
-# Fractal: Build & Publish Fractal FFmpeg
+# Build & Publish Fractal FFmpeg
 # Build and publish the internal Fractal version of FFmpeg.
 
-name: "Fractal: Build & Publish FFmpeg"
-
-# need to change pull_request to push to master
+name: "Build & Publish Fractal FFmpeg"
 
 on:
-    workflow_dispatch:
-    pull_request:
+    push:
         branches: [master, phil/ci]
         paths-ignore:
             - "README.md"
+    workflow_dispatch:
 
 jobs:
-    build-and-publish-macos-ffmpeg:
-        name: Build and Publish FFmpeg for macOS
-        runs-on: [macos-10.14]
+    build-and-publish-fractal-ffmpeg:
+      name: ${{ matrix.config.name }}
+      runs-on: ${{ matrix.config.os }}
 
-        steps: 
-            - name: Checkout Git Repository
-              uses: actions/checkout@v2
-              with:
-                persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-                fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
+      # Platforms to build on/for
+      strategy:
+        matrix:
+          config:
+            - name: "Build and Publish Fractal FFmpeg on Windows"
+              os: windows-2016
+            - name: "Build and Publish Fractal FFmpeg on macOS"
+              os: macos-10.14 # Xcode and Homebrew preinstalled
+            - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+              os: ubuntu-18.04
 
-            # XCode CLI is already installed, so no need to run `xcode-select --install`
+      env:
+        windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
+        macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
+        linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
+        headers-tar-name: fractal-ffmpeg-headers.tar.gz
+        s3-bucket-region: us-east-1
+        s3-bucket-uri: s3://fractal-protocol-shared-libs
 
-            - name: Install Homebrew
-              run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      steps: 
+          - name: Checkout Git Repository
+            uses: actions/checkout@v2
+            with:
+              persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+              fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
-            - name: Set proper Homebrew folder permissions for linking
-              run: |
-                sudo chown -R `whoami`:admin /usr/local/bin
-                sudo chown -R `whoami`:admin /usr/local/share
-                sudo chown -R `whoami`:admin /usr/local/opt
+          - name: On Windows, Checkout Media Autobuild Suite
+            if: runner.os == 'Windows'
+            uses: actions/checkout@v2
+            with:
+              repository: m-ab-s/media-autobuild_suite
+              token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }} 
 
-            - name: Install FFmpeg macOS Dependencies
-              run: |
-                brew install automake fdk-aac git lame libass libtool libvorbis libvpx \
-                opus sdl shtool texi2html theora wget x264 x265 xvid nasm
+          ################################# MACOS STEPS START ###############################
 
-            # texi2html
+          - name: Install FFmpeg macOS Dependencies
+            if: runner.os == 'macOS'
+            shell: bash
+            run: |
+              brew install \
+              automake fdk-aac git lame libass libtool libvorbis libvpx \
+              opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
-            - name: Configure and Make FFmpeg
-              run: |
-                ./configure \
-                --prefix=/usr/local --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype \
-                --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 \
-                --enable-libopus --enable-libxvid --samples=fate-suite \
-                && make
+          - name: Configure and Make FFmpeg on macOS # only configure the minimum required flags for the Fractal protocol
+            if: runner.os == 'macOS'
+            shell: bash
+            run: |
+              ./configure \
+              --prefix=/usr/local --enable-gpl --enable-nonfree \ 
+              --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+              && make
 
-            # TODO: find where the .dylibs are, zip them and upload them to S3
+          ################################# MACOS STEPS END #################################
+
+          ################################# LINUX STEPS START ###############################
+
+          - name: Install FFmpeg Linux Ubuntu Dependencies
+            if: runner.os == 'Linux'
+            shell: bash
+            run: |
+              sudo apt-get update -qq && sudo apt-get -y install \
+              autoconf \
+              automake \
+              build-essential \
+              cmake \
+              git-core \
+              libass-dev \
+              libfreetype6-dev \
+              libgnutls28-dev \
+              libsdl2-dev \
+              libtool \
+              libva-dev \
+              libvdpau-dev \
+              libvorbis-dev \
+              libxcb1-dev \
+              libxcb-shm0-dev \
+              libxcb-xfixes0-dev \
+              pkg-config \
+              texinfo \
+              wget \
+              yasm \
+              zlib1g-dev \
+              libunistring-dev
+
+          - name: Install FFmpeg Library Dependencies
+            if: runner.os == 'Linux'
+            shell: bash
+            run: |
+              sudo apt-get update -qq && sudo apt-get -y install \
+              nasm \
+              libx264-dev \
+              libx265-dev libnuma-dev \
+              libvpx-dev \
+              libfdk-aac-dev \
+              libmp3lame-dev \
+              libopus-dev
 
 
 
 
 
-    build-and-publish-windows-ffmpeg:
-        name: Build and Publish FFmpeg for Windows
-        runs-on: [windows-2016]
+          - name: Configure and Make FFmpeg on Linux Ubuntu
+            if: runner.os == 'Linux'
+            shell: bash
+            run: |
+              PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+              --prefix="$HOME/ffmpeg_build" \
+              --pkg-config-flags="--static" \
+              --extra-cflags="-I$HOME/ffmpeg_build/include" \
+              --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+              --extra-libs="-lpthread -lm" \
+              --bindir="$HOME/bin" \
+              --enable-gpl \
+              --enable-nonfree \
+              --enable-opengl \
+              --enable-vaapi \
+              --enable-gnutls \
+              --enable-libfdk-aac \
+              --enable-libsvtav1 \
+              --enable-libvpx \
+              --enable-libx264 \
+              --enable-libx265 && \
+              PATH="$HOME/bin:$PATH" make
 
-        steps: 
-            - name: Checkout Git Repository
-              uses: actions/checkout@v2
-              with:
-                persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-                fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
-            - name: Checkout Media Autobuild Suite
-              uses: actions/checkout@v2
-              with:
-                repository: m-ab-s/media-autobuild_suite
-                token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }} 
+
+
+
+
+          ################################# LINUX STEPS END #################################
+
 
 
 
@@ -135,6 +209,8 @@ jobs:
             # 52- echo 2 to NOT use ccache when compiling
             # 53- echo 1 to disable mintty and print the output to this console
             - name: Run media-autobuild_suite.bat
+              if: runner.os == 'Windows'
+              shell: powershell
               run: |
                 (echo 3 && \
                  echo 1 && \
@@ -196,108 +272,61 @@ jobs:
 
 
 
-    build-and-publish-linux-ffmpeg:
-        name: Build and Publish FFmpeg for Linux Ubuntu
-        runs-on: [ubuntu-18.04]
-
-        steps: 
-            - name: Checkout Git Repository
-              uses: actions/checkout@v2
-              with:
-                persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-                fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
-
-            - name: Install FFmpeg Linux Ubuntu Dependencies
-              run: |
-                sudo apt-get update -qq && sudo apt-get -y install \
-                autoconf \
-                automake \
-                build-essential \
-                cmake \
-                git-core \
-                libass-dev \
-                libfreetype6-dev \
-                libgnutls28-dev \
-                libsdl2-dev \
-                libtool \
-                libva-dev \
-                libvdpau-dev \
-                libvorbis-dev \
-                libxcb1-dev \
-                libxcb-shm0-dev \
-                libxcb-xfixes0-dev \
-                pkg-config \
-                texinfo \
-                wget \
-                yasm \
-                zlib1g-dev \
-                libunistring-dev
-
-            - name: Create FFmpeg Output Directory
-              run: mkdir -p ~/ffmpeg_sources ~/bin
-
-            - name: Install FFmpeg Library Dependencies
-              run: |
-                sudo apt-get update -qq && sudo apt-get -y install \
-                nasm \
-                libx264-dev \
-                libx265-dev libnuma-dev \
-                libvpx-dev \
-                libfdk-aac-dev \
-                libmp3lame-dev \
-                libopus-dev
-
-            - name: Install FFmpeg libaom Dependency (AV1 Video Encoder/Decoder)
-              run: |                
-                cd ~/ffmpeg_sources && \
-                git -C aom pull 2> /dev/null || git clone --depth 1 https://aomedia.googlesource.com/aom && \
-                mkdir -p aom_build && \
-                cd aom_build && \
-                PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom && \
-                PATH="$HOME/bin:$PATH" make && \
-                make install
-
-            - name: Install FFmpeg libsvtav1 Dependency (AV1 Video Encoder/Decoder)
-              run: |          
-                cd ~/ffmpeg_sources && \
-                git -C SVT-AV1 pull 2> /dev/null || git clone https://github.com/AOMediaCodec/SVT-AV1.git && \
-                mkdir -p SVT-AV1/build && \
-                cd SVT-AV1/build && \
-                PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DCMAKE_BUILD_TYPE=Release -DBUILD_DEC=OFF -DBUILD_SHARED_LIBS=OFF .. && \
-                PATH="$HOME/bin:$PATH" make && \
-                make install
-
-            # TODO: fix this to use this local FFmpeg rather than download it
-            - name: Build FFmpeg
-              run: |
-                cd ~/ffmpeg_sources && \
-                wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 && \
-                tar xjvf ffmpeg-snapshot.tar.bz2 && \
-                cd ffmpeg && \
-                PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
-                --prefix="$HOME/ffmpeg_build" \
-                --pkg-config-flags="--static" \
-                --extra-cflags="-I$HOME/ffmpeg_build/include" \
-                --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
-                --extra-libs="-lpthread -lm" \
-                --bindir="$HOME/bin" \
-                --enable-gpl \
-                --enable-gnutls \
-                --enable-libaom \
-                --enable-libass \
-                --enable-libfdk-aac \
-                --enable-libfreetype \
-                --enable-libmp3lame \
-                --enable-libopus \
-                --enable-libsvtav1 \
-                --enable-libvorbis \
-                --enable-libvpx \
-                --enable-libx264 \
-                --enable-libx265 \
-                --enable-nonfree && \
-                PATH="$HOME/bin:$PATH" make && \
-                make install && \
-                hash -r
 
 
 
+
+
+
+
+
+
+
+
+
+
+            # TODO: find where the .dylibs are, zip them and upload them to S3
+
+      # - name: Tar libSDL and Upload to AWS S3
+      #   shell: bash
+      #   run: |
+      #     cd ${{ env.binary-location }}
+      #     if [ "$RUNNER_OS" == "Linux" ]; then
+      #         tar -zcvf ${{ env.linux-tar-name }} libSDL2.a
+      #         aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+      #     elif [ "$RUNNER_OS" == "Windows" ]; then
+      #         tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
+      #         aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
+      #     else
+      #         tar -zcvf ${{ env.macos-tar-name }} libSDL2.a
+      #         aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
+      #     fi
+
+      # - name: Tar SDL headers and Upload to AWS S3
+      #   if: runner.os == 'Linux' # Only run once, as headers are identical on every OS
+      #   shell: bash
+      #   run: |
+      #     tar -zcvf ${{ env.headers-tar-name }} include
+      #     aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
+
+
+
+
+
+
+
+
+
+
+    notify-slack:
+      name: Notify Slack
+      needs: [build-and-publish-fractal-ffmpeg]
+      if: success()
+      runs-on: ubuntu-20.04
+
+      steps:
+        - name: Notify Slack
+          run: |
+            curl -X POST \
+            --data-urlencode "payload={\"channel\": \"#alerts\", \"username\": \"Fractal Bot\", \"text\": \"Fractal FFmpeg Static Build Deployed to Production via Upload to AWS S3.\", \"icon_emoji\": \":fractal:\"}" \
+            ${{ secrets.SLACK_HOOKS_ENDPOINT }}
