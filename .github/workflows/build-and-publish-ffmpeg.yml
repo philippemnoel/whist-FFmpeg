@@ -152,118 +152,117 @@ jobs:
 
 
 
-            # run this from cmd
+          # run this from cmd
 
 
-            # 1- echo 3 to build for 64-bit systems
-            # 2- echo 1 to build non-free dependencies
-            # 3- echo 2 to NOT build standalone binaries for libraries included in FFmpeg
-            # 4- echo 1 to NOT build VP8/9 encoder
-            # 5- echo 1 to build aom
-            # 6- echo 1 to build rav1e
-            # 7- echo 1 to build dav1d
-            # 8- echo 1 to build libavif
-            # 9- echo 1 to build jpeg-xl
-            # 10- echo 4 to build x264 with lib/binary with 8 and 10-bit, and libavformat and ffms2
-            # 11- echo 1 to build x265 with lib/binary with Main, Main10 and Main12
-            # 12- echo 1 to build Kvazaar (H.265 encoder)
-            # 13- echo 1 to build SVT-HEVC (H.265 encoder)
-            # 14- echo 2 to NOT build xvc (HEVC and AV1 competitor)
-            # 15- echo 2 to NOT build Fraunhofer VVC (H.265 successor enc/decoder)
-            # 16- echo 2 to NOT build SVT-AV1 (AV1 encoder)
-            # 17- echo 2 to NOT build SVT-VP9 (VP9 encoder)
-            # 18- echo 1 to build FLAC (Free Lossless Audio Codec)
-            # 19- echo 1 to build FDK-AAC (AAC-LC/HE/HEv2 codec)
-            # 20- echo 2 to NOT build FAAC (old, low-quality and non-free AAC-LC codec)
-            # 21- echo 2 to NOT build exhale binary (open-source ISO/IEC 23003-3 USAC, xHE-AAC encoder)
-            # 22- echo 2 to NOT build mediainfo binaries (Multimedia file information tool)
-            # 23- echo 2 to NOT build sox binaries (Sound processing tool)
-            # 24- echo 1 to build STATIC FFmpeg libraries
-            # 25- echo 1 to "Always build FFmpeg when libraries have been updated" -- this is irrelevant here since GHA VMs are wiped after runs
-            # 26- echo 1 to "Choose ffmpeg and mpv optional libraries"
-            # 27- echo "c" to continue
-            # 28- echo "c" to continue
-            # 29- echo 2 to NOT build mp4box (mp4 muxer/toolbox)
-            # 30- echo 2 to NOT build rtmpdump binaries (rtmp tools)
-            # 31- echo 2 to NOT build static mplayer/mencoder (UNSUPPORTED)
-            # 32- echo 1 to build mpv
-            # 33- echo 2 to NOT build vlc
-            # 34- echo 1 to build bmx
-            # 35- echo 2 to NOT build static curl
-            # 36- echo 2 to NOT build FFMedia Broadcast binary (UNSUPPORTED)
-            # 37- echo 2 to NOT build cyanrip (CLI CD ripper)
-            # 38- echo 2 to NOT build redshift (f.lux FOSS clone)
-            # 39- echo 2 to NOT build ripgrep (faster grep in Rust)
-            # 40- echo 2 to NOT build jq (CLI JSON processor)
-            # 41- echo 2 to NOT build jo (CLI JSON from shell)
-            # 42- echo 2 to NOT build dssim (multiscale SSIM in Rust)
-            # 43- echo 1 to build avs2 (Audio Video Coding Standard Gen2 encoder/decoder)
-            # 44- echo 2 to NOT using clang instead of gcc (Recommended)
-            # 45- echo 2 to use 2 cores for compilation (GHA VMs have only 2 cores)
-            # 46- echo 1 to delete versioned source folders after compile is done
-            # 47- echo 1 to strip compiled files binaries
-            # 48- echo 2 to NOT pack compiled files
-            # 49- echo 1 to write logs of compilation commands
-            # 50- echo 2 to NOT create script to update suite files automatically
-            # 51- echo 1 to show timestamps of commands during compilation
-            # 52- echo 2 to NOT use ccache when compiling
-            # 53- echo 1 to disable mintty and print the output to this console
-            - name: Run media-autobuild_suite.bat
-              if: runner.os == 'Windows'
-              shell: powershell
-              run: |
-                (echo 3 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 4 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo c && \
-                 echo c && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 1 && \
-                 echo 2 && \
-                 echo 2 && \
-                 echo 1) | .\media-autobuild_suite.bat
-              shell: cmd
+          # 1- echo 3 to build for 64-bit systems
+          # 2- echo 1 to build non-free dependencies
+          # 3- echo 2 to NOT build standalone binaries for libraries included in FFmpeg
+          # 4- echo 1 to NOT build VP8/9 encoder
+          # 5- echo 1 to build aom
+          # 6- echo 1 to build rav1e
+          # 7- echo 1 to build dav1d
+          # 8- echo 1 to build libavif
+          # 9- echo 1 to build jpeg-xl
+          # 10- echo 4 to build x264 with lib/binary with 8 and 10-bit, and libavformat and ffms2
+          # 11- echo 1 to build x265 with lib/binary with Main, Main10 and Main12
+          # 12- echo 1 to build Kvazaar (H.265 encoder)
+          # 13- echo 1 to build SVT-HEVC (H.265 encoder)
+          # 14- echo 2 to NOT build xvc (HEVC and AV1 competitor)
+          # 15- echo 2 to NOT build Fraunhofer VVC (H.265 successor enc/decoder)
+          # 16- echo 2 to NOT build SVT-AV1 (AV1 encoder)
+          # 17- echo 2 to NOT build SVT-VP9 (VP9 encoder)
+          # 18- echo 1 to build FLAC (Free Lossless Audio Codec)
+          # 19- echo 1 to build FDK-AAC (AAC-LC/HE/HEv2 codec)
+          # 20- echo 2 to NOT build FAAC (old, low-quality and non-free AAC-LC codec)
+          # 21- echo 2 to NOT build exhale binary (open-source ISO/IEC 23003-3 USAC, xHE-AAC encoder)
+          # 22- echo 2 to NOT build mediainfo binaries (Multimedia file information tool)
+          # 23- echo 2 to NOT build sox binaries (Sound processing tool)
+          # 24- echo 1 to build STATIC FFmpeg libraries
+          # 25- echo 1 to "Always build FFmpeg when libraries have been updated" -- this is irrelevant here since GHA VMs are wiped after runs
+          # 26- echo 1 to "Choose ffmpeg and mpv optional libraries"
+          # 27- echo "c" to continue
+          # 28- echo "c" to continue
+          # 29- echo 2 to NOT build mp4box (mp4 muxer/toolbox)
+          # 30- echo 2 to NOT build rtmpdump binaries (rtmp tools)
+          # 31- echo 2 to NOT build static mplayer/mencoder (UNSUPPORTED)
+          # 32- echo 1 to build mpv
+          # 33- echo 2 to NOT build vlc
+          # 34- echo 1 to build bmx
+          # 35- echo 2 to NOT build static curl
+          # 36- echo 2 to NOT build FFMedia Broadcast binary (UNSUPPORTED)
+          # 37- echo 2 to NOT build cyanrip (CLI CD ripper)
+          # 38- echo 2 to NOT build redshift (f.lux FOSS clone)
+          # 39- echo 2 to NOT build ripgrep (faster grep in Rust)
+          # 40- echo 2 to NOT build jq (CLI JSON processor)
+          # 41- echo 2 to NOT build jo (CLI JSON from shell)
+          # 42- echo 2 to NOT build dssim (multiscale SSIM in Rust)
+          # 43- echo 1 to build avs2 (Audio Video Coding Standard Gen2 encoder/decoder)
+          # 44- echo 2 to NOT using clang instead of gcc (Recommended)
+          # 45- echo 2 to use 2 cores for compilation (GHA VMs have only 2 cores)
+          # 46- echo 1 to delete versioned source folders after compile is done
+          # 47- echo 1 to strip compiled files binaries
+          # 48- echo 2 to NOT pack compiled files
+          # 49- echo 1 to write logs of compilation commands
+          # 50- echo 2 to NOT create script to update suite files automatically
+          # 51- echo 1 to show timestamps of commands during compilation
+          # 52- echo 2 to NOT use ccache when compiling
+          # 53- echo 1 to disable mintty and print the output to this console
+          - name: Run media-autobuild_suite.bat
+            if: runner.os == 'Windows'
+            shell: cmd
+            run: |
+              (echo 3 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 1 && \
+                echo 1 && \
+                echo 1 && \
+                echo 1 && \
+                echo 4 && \
+                echo 1 && \
+                echo 1 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 1 && \
+                echo 1 && \
+                echo c && \
+                echo c && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 2 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1 && \
+                echo 1 && \
+                echo 2 && \
+                echo 1 && \
+                echo 2 && \
+                echo 2 && \
+                echo 1) | .\media-autobuild_suite.bat
 
 
 
