@@ -21,8 +21,8 @@ jobs:
     strategy:
       matrix:
         config:
-          # - name: "Build and Publish Fractal FFmpeg on Windows" comment out windows so it doesnt work yet
-          #   os: windows-2016
+          - name: "Build and Publish Fractal FFmpeg on Windows"
+            os: windows-2016
           # - name: "Build and Publish Fractal FFmpeg on macOS" comment out macos since it fully works
           #   os: macos-10.14 # Xcode and Homebrew preinstalled
           - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
