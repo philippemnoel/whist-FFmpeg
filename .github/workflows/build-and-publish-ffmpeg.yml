@@ -21,10 +21,10 @@ jobs:
     strategy:
       matrix:
         config:
-          # - name: "Build and Publish Fractal FFmpeg on Windows"
+          # - name: "Build and Publish Fractal FFmpeg on Windows" comment out windows so it doesnt work yet
           #   os: windows-2016
-          - name: "Build and Publish Fractal FFmpeg on macOS"
-            os: macos-10.14 # Xcode and Homebrew preinstalled
+          # - name: "Build and Publish Fractal FFmpeg on macOS" comment out macos since it fully works
+          #   os: macos-10.14 # Xcode and Homebrew preinstalled
           - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
             os: ubuntu-18.04
 
@@ -257,7 +257,7 @@ jobs:
 
 
 
-              
+
 
           else
               # create protocol-compliant lib folder and move libs over
@@ -285,7 +285,7 @@ jobs:
           
           # move select header files over to tar, only the ones needed
           # libavcodec
-          mv ${{ env.headers-build-folder }}/libavcodec/ \
+          mv -t ${{ env.headers-build-folder }}/libavcodec/ \
           libavcodec/ac3_parser.h \
           libavcodec/adts_parser.h \
           libavcodec/avcodec.h \
@@ -313,6 +313,7 @@ jobs:
           # libavfilter
           mv -t ${{ env.headers-build-folder }}/libavfilter/ \
           libavfilter/avfilter.h \
+          libavfilter/buffersink.h \
           libavfilter/buffersrc.h \
           libavfilter/version.h
 
@@ -356,7 +357,7 @@ jobs:
           libavutil/file.h \
           libavutil/frame.h \
           libavutil/hash.h \
-          ibavutil/hdr_dynamic_metadata.h \
+          libavutil/hdr_dynamic_metadata.h \
           libavutil/hmac.h \
           libavutil/hwcontext.h \
           libavutil/hwcontext_cuda.h \
