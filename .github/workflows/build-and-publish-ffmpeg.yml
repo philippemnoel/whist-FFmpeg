@@ -78,7 +78,7 @@ jobs:
               ./configure \
               --prefix=/usr/local --enable-gpl --enable-nonfree \
               --enable-libfdk-aac --enable-libx264 --enable-libx265 \
-              --disable-ffplay --disable-ffprobe --enable-version3
+              --disable-ffplay --disable-ffprobe --enable-version3 \
               && make
 
           ################################# MACOS STEPS END #################################
