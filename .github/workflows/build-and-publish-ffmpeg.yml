@@ -88,7 +88,7 @@ jobs:
             
           ################################# LINUX STEPS END #################################
 
-
+          ################################ WINDOWS STEPS START ##############################
 
 
 
@@ -212,11 +212,17 @@ jobs:
 
 
 
+          ################################ WINDOWS STEPS END ################################
 
 
 
 
 
+          # tmp to see what gets created
+          - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
+            if: runner.os == 'macOS'
+            shell: bash
+            run: ls
 
 
 
@@ -226,7 +232,7 @@ jobs:
 
             # TODO: find where the .dylibs are, zip them and upload them to S3
 
-      # - name: Tar libSDL and Upload to AWS S3
+      # - name: Tar FFmpeg Libs and Upload to AWS S3
       #   shell: bash
       #   run: |
       #     cd ${{ env.binary-location }}
