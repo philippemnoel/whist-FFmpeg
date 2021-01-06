@@ -285,7 +285,7 @@ jobs:
           
           # move select header files over to tar, only the ones needed
           # libavcodec
-          mv -t ${{ env.headers-build-folder }}/libavcodec/ \
+          mv \
           libavcodec/ac3_parser.h \
           libavcodec/adts_parser.h \
           libavcodec/avcodec.h \
@@ -303,28 +303,32 @@ jobs:
           libavcodec/version.h \
           libavcodec/videotoolbox.h \
           ibavcodec/vorbis_parser.h \
-          libavcodec/xvmc.h
+          libavcodec/xvmc.h \
+          ${{ env.headers-build-folder }}/libavcodec/
 
           # libavdevice
-          mv -t ${{ env.headers-build-folder }}/libavdevice/ \
+          mv \
           libavdevice/avdevice.h \
-          libavdevice/version.h
+          libavdevice/version.h \
+          ${{ env.headers-build-folder }}/libavdevice/
 
           # libavfilter
-          mv -t ${{ env.headers-build-folder }}/libavfilter/ \
+          mv \
           libavfilter/avfilter.h \
           libavfilter/buffersink.h \
           libavfilter/buffersrc.h \
-          libavfilter/version.h
+          libavfilter/version.h \
+          ${{ env.headers-build-folder }}/libavfilter/
 
           # libavformat
-          mv -t ${{ env.headers-build-folder }}/libavformat/ \
+          mv \
           libavformat/avformat.h \
           libavformat/avio.h \
-          libavformat/version.h 
+          libavformat/version.h \
+          ${{ env.headers-build-folder }}/libavformat/
 
           # libavutil
-          mv -t ${{ env.headers-build-folder }}/libavutil/ \
+          mv \
           libavutil/adler32.h \
           libavutil/aes.h \
           libavutil/aes_ctr.h \
@@ -406,22 +410,26 @@ jobs:
           libavutil/twofish.h \
           libavutil/tx.h \
           libavutil/version.h \
-          libavutil/xtea.h
+          libavutil/xtea.h \
+          ${{ env.headers-build-folder }}/libavutil/
 
           # libpostproc
-          mv -t ${{ env.headers-build-folder }}/libpostproc/ \
+          mv \
           libpostproc/postprocess.h \
-          libpostproc/version.h
+          libpostproc/version.h \
+          ${{ env.headers-build-folder }}/libpostproc/
 
           # libswresample
-          mv -t ${{ env.headers-build-folder }}/libswresample/ \
+          mv \
           libswresample/swresample.h \
-          libswresample/version.h
+          libswresample/version.h \
+          ${{ env.headers-build-folder }}/libswresample/
         
           # libswscale
-          mv -t ${{ env.headers-build-folder }}/libswscale/ \
+          mv \
           libswscale/swscale.h \
-          libswscale/version.h
+          libswscale/version.h \
+          ${{ env.headers-build-folder }}/libswscale/
 
           # tar and upload
           tar -zcvf ${{ env.headers-tar-name }} include
