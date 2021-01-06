@@ -126,7 +126,7 @@ jobs:
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
         shell: bash
-        run: 
+        run: |
           echo "current dir is media-autobuild_suite"
           ls
 
