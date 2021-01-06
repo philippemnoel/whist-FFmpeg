@@ -52,6 +52,14 @@ jobs:
 
           ################################# MACOS STEPS START ###############################
 
+          - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking
+            if: runner.os == 'macOS'
+            shell: bash          
+            run: |
+              sudo chown -R `whoami`:admin /usr/local/bin
+              sudo chown -R `whoami`:admin /usr/local/share
+              sudo chown -R `whoami`:admin /usr/local/opt
+
           - name: Install FFmpeg macOS Dependencies
             if: runner.os == 'macOS'
             shell: bash
