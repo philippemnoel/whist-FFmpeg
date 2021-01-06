@@ -88,8 +88,8 @@ jobs:
         run: |
           ./configure \
           --prefix=/usr/local --enable-gpl --enable-nonfree --enable-version3 \
-          --disable-programs --disable-doc --disable-debug \
-          --enable-opengl --disable-sdl2 --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+          --disable-programs --disable-doc --disable-debug --disable-sdl2 \
+          --enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
           && make
 
       ################################# MACOS STEPS END #################################
@@ -104,6 +104,11 @@ jobs:
       ################################# LINUX STEPS END #################################
 
       ################################ WINDOWS STEPS START ##############################
+
+
+
+
+
 
       # run this from cmd
 
@@ -217,6 +222,10 @@ jobs:
       #       echo 2
       #       echo 1) | .\media-autobuild_suite.bat
 
+
+
+
+
       ################################ WINDOWS STEPS END ################################
 
       - name: Tar FFmpeg Libs and Upload to AWS S3
@@ -238,7 +247,17 @@ jobs:
               tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
               aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
 
+              
 
+
+
+
+
+
+
+
+
+              
 
           else
               # create protocol-compliant lib folder and move libs over
@@ -262,147 +281,146 @@ jobs:
         shell: bash
         run: |
           # create protocol-compliant headers folder and subfolders
-          mkdir ${{ env.headers-build-folder }}
-          mkdir ${{ env.headers-build-folder }}/libavcodec
-          mkdir ${{ env.headers-build-folder }}/libavdevice
-          mkdir ${{ env.headers-build-folder }}/libavfilter
-          mkdir ${{ env.headers-build-folder }}/libavformat
-          mkdir ${{ env.headers-build-folder }}/libavutil
-          mkdir ${{ env.headers-build-folder }}/libpostproc
-          mkdir ${{ env.headers-build-folder }}/libswresample
-          mkdir ${{ env.headers-build-folder }}/libswscale
-
-          # move select header files over, only the ones needed
+          mkdir -p ${{ env.headers-build-folder }}/{libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+          
+          # move select header files over to tar, only the ones needed
           # libavcodec
-          mv libavcodec/ac3_parser.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/adts_parser.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/avcodec.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/avdct.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/avfft.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/d3d11va.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/dira.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/dv_profile.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/dxva2.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/jni.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/mediacodec.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/qsv.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/vaapi.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/vdpau.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/version.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/videotoolbox.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/vorbis_parser.h ${{ env.headers-build-folder }}/libavcodec/
-          mv libavcodec/xvmc.h ${{ env.headers-build-folder }}/libavcodec/
+          mv ${{ env.headers-build-folder }}/libavcodec/ \
+          libavcodec/ac3_parser.h \
+          libavcodec/adts_parser.h \
+          libavcodec/avcodec.h \
+          libavcodec/avdct.h \
+          libavcodec/avfft.h \
+          libavcodec/d3d11va.h \
+          libavcodec/dirac.h \
+          libavcodec/dv_profile.h \
+          libavcodec/dxva2.h \
+          libavcodec/jni.h \
+          libavcodec/mediacodec.h \
+          libavcodec/qsv.h \
+          libavcodec/vaapi.h \
+          libavcodec/vdpau.h \
+          libavcodec/version.h \
+          libavcodec/videotoolbox.h \
+          ibavcodec/vorbis_parser.h \
+          libavcodec/xvmc.h
 
           # libavdevice
-          mv libavdevice/avdevice.h ${{ env.headers-build-folder }}/libavdevice/
-          mv libavdevice/version.h ${{ env.headers-build-folder }}/libavdevice/
+          mv -t ${{ env.headers-build-folder }}/libavdevice/ \
+          libavdevice/avdevice.h \
+          libavdevice/version.h
 
           # libavfilter
-          mv libavfilter/avfilter.h ${{ env.headers-build-folder }}/libavfilter/
-          mv libavfilter/buffersink.h ${{ env.headers-build-folder }}/libavfilter/
-          mv libavfilter/buffersrc.h ${{ env.headers-build-folder }}/libavfilter/
-          mv libavfilter/version.h ${{ env.headers-build-folder }}/libavfilter/
+          mv -t ${{ env.headers-build-folder }}/libavfilter/ \
+          libavfilter/avfilter.h \
+          libavfilter/buffersrc.h \
+          libavfilter/version.h
 
           # libavformat
-          mv libavformat/avformat.h ${{ env.headers-build-folder }}/libavformat/
-          mv libavformat/avio.h ${{ env.headers-build-folder }}/libavformat/
-          mv libavformat/version.h ${{ env.headers-build-folder }}/libavformat/
+          mv -t ${{ env.headers-build-folder }}/libavformat/ \
+          libavformat/avformat.h \
+          libavformat/avio.h \
+          libavformat/version.h 
 
           # libavutil
-          mv libavutil/adler32.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/aes.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/aes_ctr.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/attributes.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/audio_fifo.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/avassert.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/avconfig.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/avstring.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/avutil.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/base64.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/blowfish.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/bprint.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/bswap.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/buffer.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/camellia.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/cast5.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/channel_layout.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/common.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/cpu.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/crc.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/des.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/dict.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/display.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/downmix_info.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/encryption_info.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/error.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/eval.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/ffversion.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/fifo.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/file.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/frame.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hash.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hdr_dynamic_metadata.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hmac.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_cuda.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_d3d11va.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_drm.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_dxva2.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_mediacodec.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_qsv.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_vaapi.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_vdpau.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/hwcontext_videotoolbox.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/imgutils.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/intfloat.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/intreadwrite.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/lfg.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/log.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/lzo.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/macros.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/mastering_display_metadata.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/mathematics.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/md5.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/mem.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/motion_vector.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/murmur3.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/opt.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/parseutils.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/pixdesc.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/pixelutils.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/pixfmt.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/random_seed.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/rational.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/rc4.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/replaygain.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/ripemd.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/samplefmt.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/sha.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/sha512.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/spherical.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/stereo3d.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/tea.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/threadmessage.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/time.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/timecode.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/timestamp.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/tree.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/twofish.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/tx.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/version.h ${{ env.headers-build-folder }}/libavutil/
-          mv libavutil/xtea.h ${{ env.headers-build-folder }}/libavutil/
+          mv -t ${{ env.headers-build-folder }}/libavutil/ \
+          libavutil/adler32.h \
+          libavutil/aes.h \
+          libavutil/aes_ctr.h \
+          libavutil/attributes.h \
+          libavutil/audio_fifo.h \
+          libavutil/avassert.h \
+          libavutil/avconfig.h \
+          libavutil/avstring.h \
+          libavutil/avutil.h \
+          libavutil/base64.h \
+          libavutil/blowfish.h \
+          libavutil/bprint.h \
+          libavutil/bswap.h \
+          libavutil/buffer.h \
+          libavutil/camellia.h \
+          libavutil/cast5.h \
+          libavutil/channel_layout.h \
+          libavutil/common.h \
+          libavutil/cpu.h \
+          libavutil/crc.h \
+          libavutil/des.h \
+          libavutil/dict.h \
+          libavutil/display.h \
+          libavutil/downmix_info.h \
+          libavutil/encryption_info.h \
+          libavutil/error.h \
+          libavutil/eval.h \
+          libavutil/ffversion.h \
+          libavutil/fifo.h \
+          libavutil/file.h \
+          libavutil/frame.h \
+          libavutil/hash.h \
+          ibavutil/hdr_dynamic_metadata.h \
+          libavutil/hmac.h \
+          libavutil/hwcontext.h \
+          libavutil/hwcontext_cuda.h \
+          libavutil/hwcontext_d3d11va.h \
+          libavutil/hwcontext_drm.h \
+          libavutil/hwcontext_dxva2.h \
+          libavutil/hwcontext_mediacodec.h \
+          libavutil/hwcontext_qsv.h \
+          libavutil/hwcontext_vaapi.h \
+          libavutil/hwcontext_vdpau.h \
+          libavutil/hwcontext_videotoolbox.h \
+          libavutil/imgutils.h \
+          libavutil/intfloat.h \
+          libavutil/intreadwrite.h \
+          libavutil/lfg.h \
+          libavutil/log.h \
+          libavutil/lzo.h \
+          libavutil/macros.h \
+          libavutil/mastering_display_metadata.h \
+          libavutil/mathematics.h \
+          libavutil/md5.h \
+          libavutil/mem.h \
+          libavutil/motion_vector.h \
+          libavutil/murmur3.h \
+          libavutil/opt.h \
+          libavutil/parseutils.h \
+          libavutil/pixdesc.h \
+          libavutil/pixelutils.h \
+          libavutil/pixfmt.h \
+          libavutil/random_seed.h \
+          libavutil/rational.h \
+          libavutil/rc4.h \
+          libavutil/replaygain.h \
+          libavutil/ripemd.h \
+          libavutil/samplefmt.h \
+          libavutil/sha.h \
+          libavutil/sha512.h \
+          libavutil/spherical.h \
+          libavutil/stereo3d.h \
+          libavutil/tea.h \
+          libavutil/threadmessage.h \
+          libavutil/time.h \
+          libavutil/timecode.h \
+          libavutil/timestamp.h \
+          libavutil/tree.h \
+          libavutil/twofish.h \
+          libavutil/tx.h \
+          libavutil/version.h \
+          libavutil/xtea.h
 
           # libpostproc
-          mv libpostproc/postprocess.h ${{ env.headers-build-folder }}/libpostproc/
-          mv libpostproc/version.h ${{ env.headers-build-folder }}/libpostproc/
+          mv -t ${{ env.headers-build-folder }}/libpostproc/ \
+          libpostproc/postprocess.h \
+          libpostproc/version.h
 
           # libswresample
-          mv libswresample/swresample.h ${{ env.headers-build-folder }}/libswresample/
-          mv libswresample/version.h ${{ env.headers-build-folder }}/libswresample/
-
+          mv -t ${{ env.headers-build-folder }}/libswresample/ \
+          libswresample/swresample.h \
+          libswresample/version.h
+        
           # libswscale
-          mv libswscale/swscale.h ${{ env.headers-build-folder }}/libswscale/
-          mv libswscale/version.h ${{ env.headers-build-folder }}/libswscale/
+          mv -t ${{ env.headers-build-folder }}/libswscale/ \
+          libswscale/swscale.h \
+          libswscale/version.h
 
           # tar and upload
           tar -zcvf ${{ env.headers-tar-name }} include
