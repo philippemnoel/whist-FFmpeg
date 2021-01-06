@@ -79,23 +79,18 @@ jobs:
           automake fdk-aac git lame libass libtool libvorbis libvpx \
           opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
-
-
-
-
-
+      # We disable commandline programs and SDL2 since we have our own SDL2 static build
+      # macOS hardware acceleration libraries (Videotoolbox, Audiotoolbox) are enabled by default
       - name: On macOs, Configure and Make FFmpeg # only configure the minimum required flags for the Fractal protocol
         if: runner.os == 'macOS'
         shell: bash
         run: |
           ./configure \
-          --prefix=/usr/local --enable-gpl --enable-nonfree \
+          --prefix=/usr/local --enable-gpl --enable-nonfree --enable-version3 \
+          --disable-programs --disable-doc --disable-debug \
+          --enable-opengl --disable-sdl2 --enable-vulkan \
           --enable-libfdk-aac --enable-libx264 --enable-libx265 \
-          --disable-ffplay --disable-ffprobe --enable-version3 \
           && make
-
-
-
 
       ################################# MACOS STEPS END #################################
 
@@ -165,7 +160,7 @@ jobs:
       # 51- echo 1 to show timestamps of commands during compilation
       # 52- echo 2 to NOT use ccache when compiling
       # 53- echo 1 to disable mintty and print the output to this console
-      - name: Run media-autobuild_suite.bat
+      - name: Build FFmpeg on Windows through media-autobuild_suite.bat
         if: runner.os == 'Windows'
         shell: cmd
         run: |
@@ -234,7 +229,7 @@ jobs:
           if [ "$RUNNER_OS" == "Linux" ]; then
               # create protocol-compliant lib folder and move libs over
               mkdir ${{ env.linux-build-folder }}
-              mv docker-builds/* ${{ env.macos-build-folder }}/
+              mv docker-builds/* ${{ env.linux-build-folder }}/
 
               # tar and uplaod
               tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
