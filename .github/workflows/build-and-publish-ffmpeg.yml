@@ -117,9 +117,9 @@ jobs:
         shell: bash
         run: |
           mv \
-          build/ffmpeg/.github/workflows/ffmpeg_options.txt \
-          build/ffmpeg/.github/workflows/mpv_options.txt \
-          build/ffmpeg/.github/workflows/media-autobuild_suite.ini \
+          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
+          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
 
 
