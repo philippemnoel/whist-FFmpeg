@@ -121,10 +121,10 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
-          
+
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
-        shell: bash
+        shell: cmd
         run: cd build && .\media-autobuild_suite.bat
 
 
