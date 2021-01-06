@@ -30,8 +30,11 @@ jobs:
 
       env:
         windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
+        windows-build-folder: Windows
         macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
+        macos-build-folder: Darwin
         linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
+        linux-build-folder: Linux
         headers-tar-name: fractal-ffmpeg-headers.tar.gz
         s3-bucket-region: us-east-1
         s3-bucket-uri: s3://fractal-protocol-shared-libs
@@ -60,7 +63,7 @@ jobs:
               sudo chown -R `whoami`:admin /usr/local/share
               sudo chown -R `whoami`:admin /usr/local/opt
 
-          - name: Install FFmpeg macOS Dependencies
+          - name: On macOS, Install FFmpeg macOS Dependencies
             if: runner.os == 'macOS'
             shell: bash
             run: |
@@ -68,13 +71,14 @@ jobs:
               automake fdk-aac git lame libass libtool libvorbis libvpx \
               opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
-          - name: Configure and Make FFmpeg on macOS # only configure the minimum required flags for the Fractal protocol
+          - name: On macOs, Configure and Make FFmpeg # only configure the minimum required flags for the Fractal protocol
             if: runner.os == 'macOS'
             shell: bash
             run: |
               ./configure \
               --prefix=/usr/local --enable-gpl --enable-nonfree \
               --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+              --disable-ffplay --disable-ffprobe --enable-version3
               && make
 
           ################################# MACOS STEPS END #################################
@@ -214,45 +218,54 @@ jobs:
 
           ################################ WINDOWS STEPS END ################################
 
-
-
-
-
-          # tmp to see what gets created
-          - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
-            if: runner.os == 'macOS'
+          - name: Tar FFmpeg Libs and Upload to AWS S3
             shell: bash
-            run: ls
+            run: |
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                  # create protocol-compliant lib folder and move libs over
+                  mkdir ${{ env.linux-build-folder }}
+                  mv docker-builds/* ${{ env.macos-build-folder }}/
+
+                  # tar and uplaod
+                  tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
+                  aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+              elif [ "$RUNNER_OS" == "Windows" ]; then
+
+
+
+
+                  tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
+                  aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
+
+
+
+              else
+                  # create protocol-compliant lib folder and move libs over
+                  mkdir ${{ env.macos-build-folder }}
+                  mv libavcodec/libavcodec.a ${{ env.macos-build-folder }}/libavcodec.a
+                  mv libavdevice/libavdevice.a ${{ env.macos-build-folder }}/libavdevice.a
+                  mv libavfilter/libavfilter.a ${{ env.macos-build-folder }}/libavfilter.a
+                  mv libavformat/libavformat.a ${{ env.macos-build-folder }}/libavformat.a
+                  mv libavutil/libavutil.a ${{ env.macos-build-folder }}/libavutil.a
+                  mv libpostproc/libpostproc.a ${{ env.macos-build-folder }}/libpostproc.a
+                  mv libswresample/libswresample.a ${{ env.macos-build-folder }}/libswresample.a
+                  mv libswscale/libswscale.a ${{ env.macos-build-folder }}/libswscale.a
+
+                  # tar and uplaod
+                  tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
+                  aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
+              fi
 
 
 
 
 
-
-
-            # TODO: find where the .dylibs are, zip them and upload them to S3
-
-      # - name: Tar FFmpeg Libs and Upload to AWS S3
-      #   shell: bash
-      #   run: |
-      #     cd ${{ env.binary-location }}
-      #     if [ "$RUNNER_OS" == "Linux" ]; then
-      #         tar -zcvf ${{ env.linux-tar-name }} libSDL2.a
-      #         aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
-      #     elif [ "$RUNNER_OS" == "Windows" ]; then
-      #         tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
-      #         aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
-      #     else
-      #         tar -zcvf ${{ env.macos-tar-name }} libSDL2.a
-      #         aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
-      #     fi
-
-      # - name: Tar SDL headers and Upload to AWS S3
-      #   if: runner.os == 'Linux' # Only run once, as headers are identical on every OS
-      #   shell: bash
-      #   run: |
-      #     tar -zcvf ${{ env.headers-tar-name }} include
-      #     aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
+            # - name: Tar SDL headers and Upload to AWS S3
+            #   if: runner.os == 'Linux' # Only run once, as headers are identical on every OS
+            #   shell: bash
+            #   run: |
+            #     tar -zcvf ${{ env.headers-tar-name }} include
+            #     aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
 
 
 
