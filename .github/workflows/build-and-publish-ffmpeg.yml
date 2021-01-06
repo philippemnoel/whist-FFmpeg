@@ -88,8 +88,7 @@ jobs:
           ./configure \
           --prefix=/usr/local --enable-gpl --enable-nonfree --enable-version3 \
           --disable-programs --disable-doc --disable-debug \
-          --enable-opengl --disable-sdl2 --enable-vulkan \
-          --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+          --enable-opengl --disable-sdl2 --enable-libfdk-aac --enable-libx264 --enable-libx265 \
           && make
 
       ################################# MACOS STEPS END #################################
