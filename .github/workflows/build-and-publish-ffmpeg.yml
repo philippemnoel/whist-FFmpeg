@@ -235,8 +235,8 @@ jobs:
 
 
 
-              tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
-              aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
+              # tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
+              # aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
 
 
 
