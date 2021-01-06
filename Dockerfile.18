@@ -3,7 +3,6 @@ FROM ubuntu:18.04
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean
 
 
-# add apt-utils?
 RUN apt-get -y install apt-utils
 
 RUN apt-get -y install build-essential autoconf automake libtool git pkg-config yasm
