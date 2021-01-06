@@ -121,27 +121,11 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
-
-
-      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
+          
+      - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: bash
-        run: |
-          echo "current dir is media-autobuild_suite"
-          ls
-
-          cd build
-          echo "current dir is build"
-          ls
-
-
-
-      # - name: On Windows, Build FFmpeg via media-autobuild_suite
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     cd ../media-autobuild_suite/build
-      #     .\media-autobuild_suite.bat
+        run: cd build && .\media-autobuild_suite.bat
 
 
 
