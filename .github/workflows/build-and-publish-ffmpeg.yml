@@ -73,7 +73,7 @@ jobs:
             shell: bash
             run: |
               ./configure \
-              --prefix=/usr/local --enable-gpl --enable-nonfree \ 
+              --prefix=/usr/local --enable-gpl --enable-nonfree \
               --enable-libfdk-aac --enable-libx264 --enable-libx265 \
               && make
 
@@ -130,7 +130,7 @@ jobs:
             if: runner.os == 'Linux'
             shell: bash
             run: |
-              PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+              ./configure \
               --prefix="$HOME/ffmpeg_build" \
               --pkg-config-flags="--static" \
               --extra-cflags="-I$HOME/ffmpeg_build/include" \
@@ -147,7 +147,7 @@ jobs:
               --enable-libvpx \
               --enable-libx264 \
               --enable-libx265 && \
-              PATH="$HOME/bin:$PATH" make
+              make
 
 
 
