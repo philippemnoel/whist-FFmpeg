@@ -105,36 +105,36 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
-
-
-
       - name: On Windows, Checkout fractal/FFmpeg Git Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         uses: actions/checkout@v2
         with:
           repository: fractal/FFmpeg
-          path: ffmpeg
+          path: build/ffmpeg
 
-
-      - name: On Windows, run ls to see what's up
+      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
         shell: bash
         run: |
+          mv \
+          build/ffmpeg/.github/workflows/ffmpeg_options.txt \
+          build/ffmpeg/.github/workflows/mpv_options.txt \
+          build/ffmpeg/.github/workflows/media-autobuild_suite.ini \
+          build/
+
+
+      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
+        if: runner.os == 'Windows'
+        shell: bash
+        run: 
+          echo "current dir is media-autobuild_suite"
           ls
 
-          cd build && ls
+          cd build
+          echo "current dir is build"
+          ls
 
 
-
-      # - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     mv \
-      #     .github/workflows/ffmpeg_options.txt \
-      #     .github/workflows/mpv_options.txt \
-      #     .github/workflows/media-autobuild_suite.ini \
-      #     ../media-autobuild_suite/build/
 
       # - name: On Windows, Build FFmpeg via media-autobuild_suite
       #   if: runner.os == 'Windows'
