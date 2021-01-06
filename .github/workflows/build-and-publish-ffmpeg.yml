@@ -44,9 +44,6 @@ jobs:
       - name: On macOS and Linux Ubuntu, Checkout this Git Repository Directly
         if: runner.os == 'macOS' || runner.os == 'Linux'
         uses: actions/checkout@v2
-        with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-          fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
       - name: On Windows, Checkout Media Autobuild Suite Instead (FFmpeg Windows Compilation Helper Tools)
         if: runner.os == 'Windows'
@@ -108,15 +105,15 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
+
+
+
       - name: On Windows, Checkout fractal/FFmpeg Git Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         uses: actions/checkout@v2
         with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-          fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           repository: fractal/FFmpeg
-          token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
-          path: build/
+          path: ffmpeg
 
 
       - name: On Windows, run ls to see what's up
