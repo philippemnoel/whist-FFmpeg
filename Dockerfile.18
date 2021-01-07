@@ -1,5 +1,8 @@
 FROM ubuntu:18.04
 
+# Run commands noninteractively
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Install essentials
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean
 RUN apt-get -y install apt-utils build-essential autoconf automake libtool git pkg-config yasm

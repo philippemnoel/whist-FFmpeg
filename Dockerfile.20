@@ -1,8 +1,11 @@
 FROM ubuntu:20.04
 
+# Run commands noninteractively
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Install essentials
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y update && apt-get -y upgrade && apt-get -y clean
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install apt-utils build-essential autoconf automake libtool git pkg-config yasm
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean
+RUN apt-get -y install apt-utils build-essential autoconf automake libtool git pkg-config yasm
 RUN apt-get -y install frei0r-plugins-dev
 RUN apt-get -y install libfdk-aac-dev
 
