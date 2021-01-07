@@ -39,9 +39,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/mediasdk/lib64
 ENV PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/intel/mediasdk/lib64/pkgconfig
 
 # Install FFmpeg dependencies
-RUN apt-get -y install libopencore-amrnb-dev && \
-    libopencore-amrwb-dev && \
-    libvo-amrwbenc-dev && \
+RUN apt-get -y install \
     libx264-dev && \
     libx265-dev && \
     mesa-common-dev && \
