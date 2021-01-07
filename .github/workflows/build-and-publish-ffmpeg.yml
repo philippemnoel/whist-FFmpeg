@@ -102,7 +102,7 @@ jobs:
       ############################# LINUX UBUNTU STEPS START ############################
 
       - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
-        if: runner.os == 'Linux' && !runner.emscripten-builder
+        if: runner.os == 'Linux' && !matrix.config.emscripten-builder
         shell: bash
         run: ./docker-build.sh 18
 
@@ -111,7 +111,7 @@ jobs:
       ############################## EMSCRIPTEN STEPS START #############################
 
       - name: Build FFmpeg Targeting Emscripten through Docker
-        if: runner.os == 'Linux' && runner.emscripten-builder
+        if: runner.os == 'Linux' && matrix.config.emscripten-builder
         shell: bash
         run: ./docker-emcc-build
 
