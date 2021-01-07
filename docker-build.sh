@@ -1,3 +1,5 @@
+# build the FFmpeg Ubuntu builder container, and extract FFmpeg libs
+
 ./build-docker-image.sh $1
 container_id=$(docker run -it -d ffmpeg-builder-ubuntu$1)
 echo "Container ID is ${container_id}"

@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# This script builds FFmpeg targeting Emscripten and places the built library
+# in the root folder of this project.
+
+# No -i to remove need for TTY device (enabling running in GitHub Actions)
 docker pull trzeci/emscripten:1.38.45
-docker run -it \
+docker run -t \
     --rm \
     -v $PWD:/src \
     trzeci/emscripten:1.38.45 \

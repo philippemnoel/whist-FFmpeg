@@ -21,12 +21,16 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: "Build and Publish Fractal FFmpeg on Windows"
-            os: windows-2016
+          # - name: "Build and Publish Fractal FFmpeg on Windows" temporarily comment out to finish linux
+          #   os: windows-2016
           # - name: "Build and Publish Fractal FFmpeg on macOS" comment out macos since it fully works
           #   os: macos-10.14 # Xcode and Homebrew preinstalled
           - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
             os: ubuntu-18.04
+            emscripten-builder: false
+          - name: "Build and Publish Fractal FFmpeg for Emscripten"
+            os: ubuntu-18.04
+            emscripten-builder: true
 
     env:
       windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
@@ -35,6 +39,7 @@ jobs:
       macos-build-folder: Darwin
       linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
       linux-build-folder: Linux
+      emscripten-tar-name: fractal-emscripten-ffmpeg-lib.tar.gz
       headers-tar-name: fractal-ffmpeg-headers.tar.gz
       headers-build-folder: include
       s3-bucket-region: us-east-1
@@ -94,14 +99,23 @@ jobs:
 
       ################################# MACOS STEPS END #################################
 
-      ################################# LINUX STEPS START ###############################
+      ############################# LINUX UBUNTU STEPS START ############################
 
       - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && !runner.emscripten-builder
         shell: bash
         run: ./docker-build.sh 18
 
-      ################################# LINUX STEPS END #################################
+      ############################# LINUX UBUNTU STEPS END ##############################
+
+      ############################## EMSCRIPTEN STEPS START #############################
+
+      - name: Build FFmpeg Targeting Emscripten through Docker
+        if: runner.os == 'Linux' && runner.emscripten-builder
+        shell: bash
+        run: ./docker-emcc-build
+
+      ############################## EMSCRIPTEN STEPS END ###############################
 
       ################################ WINDOWS STEPS START ##############################
 
@@ -116,18 +130,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cp \
+          mv \
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
-
-          mkdir /build/
-          cp \
-          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
-          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          /build/
 
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
@@ -352,6 +359,14 @@ jobs:
           # tar and upload
           tar -zcvf ${{ env.headers-tar-name }} include
           aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
+
+
+
+
+
+
+
+
 
   notify-slack:
     name: Notify Slack
