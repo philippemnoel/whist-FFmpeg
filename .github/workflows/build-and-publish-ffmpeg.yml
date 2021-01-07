@@ -120,6 +120,8 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+          build/ffmpeg/.github/workflows/helpers/mingw.sh \
+          build/ffmpeg/.github/workflows/helpers/pacman.sh \
           build/
 
       - name: On Windows, Build FFmpeg via media-autobuild_suite
