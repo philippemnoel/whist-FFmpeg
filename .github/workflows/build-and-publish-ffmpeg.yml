@@ -40,6 +40,7 @@ jobs:
       linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
       linux-build-folder: Linux
       emscripten-tar-name: fractal-emscripten-ffmpeg-lib.tar.gz
+      emscripten-build-folder: Emscripten
       headers-tar-name: fractal-ffmpeg-headers.tar.gz
       headers-build-folder: include
       s3-bucket-region: us-east-1
@@ -104,7 +105,12 @@ jobs:
       - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
         if: runner.os == 'Linux' && !matrix.config.emscripten-builder
         shell: bash
-        run: ./docker-build.sh 18
+        run: |
+          # export environment variable
+          echo "EMSCRIPTEN_BUILDER=false" >> $GITHUB_ENV
+
+          # build
+          ./docker-build.sh 18
 
       ############################# LINUX UBUNTU STEPS END ##############################
 
@@ -113,7 +119,12 @@ jobs:
       - name: Build FFmpeg Targeting Emscripten through Docker
         if: runner.os == 'Linux' && matrix.config.emscripten-builder
         shell: bash
-        run: ./docker-emcc-build
+        run: |
+          # export environment variable
+          echo "EMSCRIPTEN_BUILDER=true" >> $GITHUB_ENV
+
+          # build
+          ./docker-emcc-build
 
       ############################## EMSCRIPTEN STEPS END ###############################
 
@@ -157,13 +168,30 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-              # create protocol-compliant lib folder and move libs over
-              mkdir ${{ env.linux-build-folder }}
-              mv docker-builds/* ${{ env.linux-build-folder }}/
+              if [ "$EMSCRIPTEN_BUILDER" ]; then # Emscripten libs
+                # create protocol-compliant lib folder and move libs over
+                mkdir ${{ env.emscripten-build-folder }}
+                mv \
+                libswresample/libswresample.a \
+                libavfilter/libavfilter.a \
+                libavformat/libavformat.a \
+                libavutil/libavutil.a \
+                libswscale/libswscale.a \
+                libavcodec/libavcodec.a \
+                ${{ env.emscripten-build-folder }}
 
-              # tar and uplaod
-              tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
-              aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+                # tar and uplaod
+                tar -zcvf ${{ env.emscripten-tar-name }} ${{ env.emscripten-build-folder }}
+                aws s3 cp ${{ env.emscripten-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.emscripten-tar-name }}
+              else # Ubuntu libs
+                # create protocol-compliant lib folder and move libs over
+                mkdir ${{ env.linux-build-folder }}
+                mv docker-builds/* ${{ env.linux-build-folder }}/
+
+                # tar and uplaod
+                tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
+                aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+              fi
           elif [ "$RUNNER_OS" == "Windows" ]; then
 
 
@@ -359,14 +387,6 @@ jobs:
           # tar and upload
           tar -zcvf ${{ env.headers-tar-name }} include
           aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
-
-
-
-
-
-
-
-
 
   notify-slack:
     name: Notify Slack
