@@ -19,7 +19,6 @@ docker run -t \
         --enable-static \
         --disable-shared \
         --disable-stripping \
-        --enable-zlib \
         --enable-demuxer=image2 \
         --enable-decoder=png \
         --enable-protocol=file \
