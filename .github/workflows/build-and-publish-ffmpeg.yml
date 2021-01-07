@@ -116,15 +116,18 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          mv \
+          cp \
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          build/ffmpeg/.github/workflows/helpers/mingw.sh \
-          build/ffmpeg/.github/workflows/helpers/pacman.sh \
           build/
 
-          cd build && ls
+          mkdir /build/
+          cp \
+          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
+          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+          /build/
 
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
