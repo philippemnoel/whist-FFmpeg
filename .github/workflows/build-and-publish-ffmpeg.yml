@@ -23,14 +23,14 @@ jobs:
         config:
           # - name: "Build and Publish Fractal FFmpeg on Windows" temporarily comment out to finish linux
           #   os: windows-2016
-          # - name: "Build and Publish Fractal FFmpeg on macOS" comment out macos since it fully works
+          # - name: "Build and Publish Fractal FFmpeg on macOS"
           #   os: macos-10.14 # Xcode and Homebrew preinstalled
           - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
             os: ubuntu-18.04
             emscripten-builder: false
-          - name: "Build and Publish Fractal FFmpeg for Emscripten"
-            os: ubuntu-18.04
-            emscripten-builder: true
+          # - name: "Build and Publish Fractal FFmpeg for Emscripten"
+          #   os: ubuntu-18.04
+          #   emscripten-builder: true
 
     env:
       windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
