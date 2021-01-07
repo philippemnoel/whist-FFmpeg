@@ -40,7 +40,7 @@ jobs:
       linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
       linux-build-folder: Linux
       emscripten-tar-name: fractal-emscripten-ffmpeg-lib.tar.gz
-      emscripten-build-folder: Emscripten
+      emscripten-build-folder: Web
       headers-tar-name: fractal-ffmpeg-headers.tar.gz
       headers-build-folder: include
       s3-bucket-region: us-east-1
