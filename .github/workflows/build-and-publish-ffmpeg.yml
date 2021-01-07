@@ -125,7 +125,7 @@ jobs:
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: cmd
-        run: cd build && .\media-autobuild_suite.bat
+        run: .\media-autobuild_suite.bat
 
 
 
