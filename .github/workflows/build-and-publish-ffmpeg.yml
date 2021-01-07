@@ -124,6 +124,8 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/pacman.sh \
           build/
 
+          cd build && ls
+
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: cmd
