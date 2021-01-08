@@ -151,9 +151,11 @@ jobs:
 
       - name: Move to the root of the workspace
         if: runner.os == 'Windows'
-        shell: bash
+        shell: cmd
         run: |
-          mv media-autobuild_suite/ d/a/
+
+          move media-autobuild_suite D:\a\
+
 
 
 
