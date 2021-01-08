@@ -147,27 +147,11 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
 
-
-
-
-
-
-
-        # TODO
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: cmd
+        working-directory: media-autobuild_suite
         run: .\media-autobuild_suite.bat
-
-
-
-
-
-
-
-
-
-
 
       ################################ WINDOWS STEPS END ################################
 
