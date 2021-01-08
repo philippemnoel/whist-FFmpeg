@@ -133,8 +133,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         working-directory: media-autobuild_suite/build
-        run: |
-            git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
+        run: git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
 
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
@@ -147,11 +146,25 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
 
+
+
+
+      - name: Move to the root of the workspace
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mv media-autobuild_suite/ d/a/
+
+
+
       - name: On Windows, Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: cmd
-        working-directory: media-autobuild_suite
-        run: .\media-autobuild_suite.bat
+        run: |
+          cd ../..
+          .\media-autobuild_suite.bat
+
+
 
       ################################ WINDOWS STEPS END ################################
 
@@ -227,7 +240,7 @@ jobs:
         run: |
           # create protocol-compliant headers folder and subfolders
           mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
-          
+
           # move select header files over to tar, only the ones needed
           # libavcodec
           mv \
@@ -367,7 +380,7 @@ jobs:
           libswresample/swresample.h \
           libswresample/version.h \
           ${{ env.headers-build-folder }}/libswresample/
-        
+
           # libswscale
           mv \
           libswscale/swscale.h \
