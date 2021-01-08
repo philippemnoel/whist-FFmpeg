@@ -140,11 +140,15 @@ jobs:
         run: |
             cd build/ && git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
 
+            echo "build/:"
             ls
 
-            echo "tmp"
+            echo "build/ffmpeg/:"
+            cd ffmpeg/ && ls
 
-            cd ..
+            cd ../..
+
+            echo "media-autobuild_suite/:"
 
             ls
 
@@ -152,18 +156,16 @@ jobs:
 
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
-        shell: bash
+        shell: cmd
         run: |
 
-          cd build/
 
-          mv \
-          ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-          ffmpeg/.github/workflows/helpers/mpv_options.txt \
-          ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          ..
 
-          cd ..
+          move D:\a\media-autobuild_suite\media-autobuild_suite\build\ffmpeg\.github\workflows\helpers\ffmpeg_options.txt D:\a\media-autobuild_suite\media-autobuild_suite\build\
+          move D:\a\media-autobuild_suite\media-autobuild_suite\build\ffmpeg\.github\workflows\helpers\mpv_options.txt D:\a\media-autobuild_suite\media-autobuild_suite\build\
+          move D:\a\media-autobuild_suite\media-autobuild_suite\build\ffmpeg\.github\workflows\helpers\media-autobuild_suite.ini D:\a\media-autobuild_suite\media-autobuild_suite\build\
+
+
 
 
 
