@@ -13,7 +13,6 @@ for lib in "${LIBS[@]}"; do
     docker exec ${container_id} /bin/bash -c "cp ${LIB_LOC}/${lib}* /docker-builds"
 done
 
-rm -r docker-builds
 docker cp ${container_id}:/docker-builds .
 
 docker container kill $container_id

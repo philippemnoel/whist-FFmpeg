@@ -173,7 +173,7 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-              if [ "$EMSCRIPTEN_BUILDER" ]; then # Emscripten libs
+              if [ "$EMSCRIPTEN_BUILDER" == "true" ]; then # Emscripten libs
                 # create protocol-compliant lib folder and move libs over
                 mkdir ${{ env.emscripten-build-folder }}
                 mv \
