@@ -138,8 +138,11 @@ jobs:
       - name: On Windows, Git Clone the fractal/FFmpeg Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         shell: bash
+        working-directory: media-autobuild_suite/build/
         run: |
             git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/FFmpeg.git" /ffmpeg
+
+            ls
 
           
     
