@@ -55,10 +55,9 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/checkout@v2
         with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-          fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           repository: m-ab-s/media-autobuild_suite
           token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
+          path: media-autobuild_suite
 
       # To publish FFmpeg builds to AWS S3
       - name: Configure AWS S3 CLI
@@ -133,14 +132,14 @@ jobs:
       - name: On Windows, Git Clone the fractal/FFmpeg Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         shell: bash
+        working-directory: media-autobuild_suite/build
         run: |
-            cd build/ && git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
-            cd ..
+            pwd
+            echo "====="
+            ls
+            git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
 
-            
-
-
-
+          
 
 
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
@@ -148,7 +147,9 @@ jobs:
         shell: bash
         working-directory: media-autobuild_suite
         run: |
-
+          pwd
+          echo "====="
+          ls
 
           mv \
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
