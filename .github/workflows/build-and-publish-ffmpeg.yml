@@ -150,6 +150,15 @@ jobs:
           pwd
           echo "====="
           ls
+          echo "====="
+
+
+          ls build
+          echo "====="
+
+          ls build/ffmpeg
+          echo "====="
+          ls build/ffmpeg/.github/workflows/helpers
 
           mv \
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
