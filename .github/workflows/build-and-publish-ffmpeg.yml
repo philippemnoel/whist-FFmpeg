@@ -130,6 +130,10 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
+
+
+
+
       - name: On Windows, Git Clone the fractal/FFmpeg Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         shell: bash
@@ -137,10 +141,15 @@ jobs:
             cd build/ && git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
             cd ..
 
+            ls
+
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
         shell: bash
         run: |
+
+          ls
+
           mv \
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
