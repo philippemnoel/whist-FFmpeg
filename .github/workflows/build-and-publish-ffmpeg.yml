@@ -146,25 +146,18 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
           build/
 
-
-
-
-      - name: Move to the root of the workspace
+      # Need to move closer to root since media-autobuild_suite is finicky with paths
+      - name: On Windows, Move media-autobuild_suite to Root and Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-
           move media-autobuild_suite D:\a\
-
-
-
-
-      - name: On Windows, Build FFmpeg via media-autobuild_suite
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          cd ../..
+          cd D:\a\media-autobuild_suite
           .\media-autobuild_suite.bat
+
+
+
+
 
 
 
