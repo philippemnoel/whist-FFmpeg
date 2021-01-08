@@ -155,13 +155,15 @@ jobs:
         shell: bash
         run: |
 
-          ls
+          cd build/
 
           mv \
-          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
-          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          build/
+          ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+          ffmpeg/.github/workflows/helpers/mpv_options.txt \
+          ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+          ..
+
+          cd ..
 
 
 
