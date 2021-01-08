@@ -139,9 +139,16 @@ jobs:
         shell: bash
         run: |
             cd build/ && git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
+
+            ls
+
+            echo "tmp"
+
             cd ..
 
             ls
+
+            
 
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
         if: runner.os == 'Windows'
