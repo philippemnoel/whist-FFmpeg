@@ -294,7 +294,6 @@ jobs:
           libavutil/attributes.h \
           libavutil/audio_fifo.h \
           libavutil/avassert.h \
-          libavutil/avconfig.h \
           libavutil/avstring.h \
           libavutil/avutil.h \
           libavutil/base64.h \
@@ -315,7 +314,6 @@ jobs:
           libavutil/encryption_info.h \
           libavutil/error.h \
           libavutil/eval.h \
-          libavutil/ffversion.h \
           libavutil/fifo.h \
           libavutil/file.h \
           libavutil/frame.h \
