@@ -151,8 +151,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          move media-autobuild_suite D:\a\
-          cd D:\a\media-autobuild_suite
+          move media-autobuild_suite D:\
+          cd D:\media-autobuild_suite
           .\media-autobuild_suite.bat
 
 
