@@ -21,13 +21,13 @@ jobs:
     strategy:
       matrix:
         config:
-          # - name: "Build and Publish Fractal FFmpeg on Windows" temporarily comment out to finish linux
-          #   os: windows-2016
+          - name: "Build and Publish Fractal FFmpeg on Windows"
+            os: windows-2016
           # - name: "Build and Publish Fractal FFmpeg on macOS"
           #   os: macos-10.14 # Xcode and Homebrew preinstalled
-          - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-            os: ubuntu-18.04
-            emscripten-builder: false
+          # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+          #   os: ubuntu-18.04
+          #   emscripten-builder: false
           # - name: "Build and Publish Fractal FFmpeg for Emscripten"
           #   os: ubuntu-18.04
           #   emscripten-builder: true
@@ -130,22 +130,28 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
-      - name: On Windows, Checkout fractal/FFmpeg Git Repository Within media-autobuild_suite/build/
-        if: runner.os == 'Windows'
-        uses: actions/checkout@v2
-        with:
-          repository: fractal/FFmpeg
-          path: build/ffmpeg
 
-      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
+
+
+
+
+      - name: On Windows, Git Clone the fractal/FFmpeg Repository Within media-autobuild_suite/build/
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          mv \
-          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
-          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          build/
+            git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/FFmpeg.git" /ffmpeg
+
+          
+    
+      # - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
+      #   if: runner.os == 'Windows'
+      #   shell: bash
+      #   run: |
+      #     mv \
+      #     build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+      #     build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
+      #     build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+      #     build/
 
 
 
