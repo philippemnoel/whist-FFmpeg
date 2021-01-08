@@ -261,7 +261,7 @@ jobs:
           libavcodec/vdpau.h \
           libavcodec/version.h \
           libavcodec/videotoolbox.h \
-          ibavcodec/vorbis_parser.h \
+          libavcodec/vorbis_parser.h \
           libavcodec/xvmc.h \
           ${{ env.headers-build-folder }}/libavcodec/
 
