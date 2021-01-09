@@ -144,21 +144,30 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          build/    
+          build/ffmpeg/.github/workflows/helpers/bash.sh \
+          build/ffmpeg/.github/workflows/helpers/pacman.sh \
+          build/ffmpeg/.github/workflows/helpers/mingw.sh \
+          build/
+
+
+
+
 
       # Need to move closer to root since media-autobuild_suite is finicky with paths
       - name: On Windows, Move media-autobuild_suite to Root and Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: cmd
         run: |
           move media-autobuild_suite D:\
           cd D:\media-autobuild_suite
           .\media-autobuild_suite.bat
       
+
+
+
       - name: Log stuff
         if: always()
         shell: bash
-        working-directory: media-autobuild_suite
         run: |
           ls
           echo ====
