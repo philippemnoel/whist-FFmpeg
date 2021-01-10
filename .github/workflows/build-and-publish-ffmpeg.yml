@@ -135,25 +135,22 @@ jobs:
         working-directory: media-autobuild_suite/build
         run: git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
 
+      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: media-autobuild_suite
+        run: |
+          cp \
+          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+          build/
 
 
 
-
-
-      # - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   working-directory: media-autobuild_suite
-      #   run: |
-      #     cp \
-      #     build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-      #     build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
-      #     build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-      #     build/ffmpeg/.github/workflows/helpers/bash.sh \
-      #     build/ffmpeg/.github/workflows/helpers/pacman.sh \
-      #     build/ffmpeg/.github/workflows/helpers/mingw.sh \
-      #     build/
-
+        # build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+        # build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
+        # build/ffmpeg/.github/workflows/helpers/bash.sh \
+        # build/ffmpeg/.github/workflows/helpers/pacman.sh \
+        # build/ffmpeg/.github/workflows/helpers/mingw.sh \
 
 
 
