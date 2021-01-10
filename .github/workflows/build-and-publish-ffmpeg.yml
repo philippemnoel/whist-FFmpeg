@@ -22,7 +22,7 @@ jobs:
       matrix:
         config:
           - name: "Build and Publish Fractal FFmpeg on Windows"
-            os: windows-2016
+            os: windows-2019
           # - name: "Build and Publish Fractal FFmpeg on macOS"
           #   os: macos-10.14 # Xcode and Homebrew preinstalled
           # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
@@ -156,7 +156,7 @@ jobs:
       # Need to move closer to root since media-autobuild_suite is finicky with paths
       - name: On Windows, Move media-autobuild_suite to Root and Build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: powershell
         run: |
           move media-autobuild_suite D:\
           cd D:\media-autobuild_suite
