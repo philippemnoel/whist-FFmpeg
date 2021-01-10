@@ -158,15 +158,12 @@ jobs:
         shell: powershell
         run: .\media-autobuild_suite.bat
 
-      - name: Run again, according to GH issues it could work the second time
+      - name: Ssh with ngrok
         if: always() && runner.os == 'Windows'
-        working-directory: media-autobuild_suite
-        shell: powershell
-        run: .\media-autobuild_suite.bat
-
-
-
-
+        uses: luchihoratiu/debug-via-ssh@main
+        with:
+            NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+            SSH_PASS: ${{ secrets.SSH_PASS }}
 
 
       ################################ WINDOWS STEPS END ################################
