@@ -142,41 +142,27 @@ jobs:
         run: |
           cp \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/
 
 
-
-        # build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-        # build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
         # build/ffmpeg/.github/workflows/helpers/bash.sh \
         # build/ffmpeg/.github/workflows/helpers/pacman.sh \
         # build/ffmpeg/.github/workflows/helpers/mingw.sh \
 
 
-
-
-      # Need to move closer to root since media-autobuild_suite is finicky with paths
-      - name: On Windows, Move media-autobuild_suite to Root and Build FFmpeg via media-autobuild_suite
+      - name: On Windows, build FFmpeg via media-autobuild_suite
         if: runner.os == 'Windows'
+        working-directory: media-autobuild_suite
         shell: powershell
-        run: |
-          move media-autobuild_suite D:\
-          cd D:\media-autobuild_suite
-          .\media-autobuild_suite.bat
-      
+        run: .\media-autobuild_suite.bat
 
-
-
-      - name: Log stuff
-        if: always()
-        shell: bash
-        run: |
-          ls
-          echo ====
-          ls build
-          echo ====
-          ls /build
-
+      - name: Run again, according to GH issues it could work the second time
+        if: always() && runner.os == 'Windows'
+        working-directory: media-autobuild_suite
+        shell: powershell
+        run: .\media-autobuild_suite.bat
 
 
 
