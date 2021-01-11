@@ -51,13 +51,16 @@ jobs:
         if: runner.os == 'macOS' || runner.os == 'Linux'
         uses: actions/checkout@v2
 
-      - name: On Windows, Checkout Media Autobuild Suite Instead (FFmpeg Windows Compilation Helper Tools)
+      # media-autobuild_suite needs to be in the C:\ drive, as it is very finicky with paths
+      - name: On Windows, Git Clone fractal/FFmpeg and m-ab-s/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
         if: runner.os == 'Windows'
-        uses: actions/checkout@v2
-        with:
-          repository: m-ab-s/media-autobuild_suite
-          token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
-          path: media-autobuild_suite
+        shell: cmd
+        run: |
+          # first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
+          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/m-ab-s/media-autobuild_suite.git" C:\media-autobuild_suite
+
+          # then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
+          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
       # To publish FFmpeg builds to AWS S3
       - name: Configure AWS S3 CLI
@@ -129,16 +132,10 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
-      - name: On Windows, Git Clone the fractal/FFmpeg Repository Within media-autobuild_suite/build/
+      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
         if: runner.os == 'Windows'
         shell: bash
-        working-directory: media-autobuild_suite/build
-        run: git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git"
-
-      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to media-autobuild_suite/build
-        if: runner.os == 'Windows'
-        shell: bash
-        working-directory: media-autobuild_suite
+        working-directory: C:\media-autobuild_suite
         run: |
           cp \
           build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
@@ -146,25 +143,11 @@ jobs:
           build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
           build/
 
-
-        # build/ffmpeg/.github/workflows/helpers/bash.sh \
-        # build/ffmpeg/.github/workflows/helpers/pacman.sh \
-        # build/ffmpeg/.github/workflows/helpers/mingw.sh \
-
-
-      - name: On Windows, build FFmpeg via media-autobuild_suite
+      - name: On Windows, build FFmpeg via media-autobuild_suite from C:\ drive
         if: runner.os == 'Windows'
-        working-directory: media-autobuild_suite
+        working-directory: C:\media-autobuild_suite
         shell: powershell
         run: .\media-autobuild_suite.bat
-
-      - name: Ssh with ngrok
-        if: always() && runner.os == 'Windows'
-        uses: luchihoratiu/debug-via-ssh@main
-        with:
-            NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-            SSH_PASS: ${{ secrets.SSH_PASS }}
-
 
       ################################ WINDOWS STEPS END ################################
 
