@@ -149,6 +149,17 @@ jobs:
         shell: powershell
         run: .\media-autobuild_suite.bat
 
+
+      - name: Ssh with ngrok
+        if: always() && runner.os == 'Windows'
+        uses: luchihoratiu/debug-via-ssh@main
+        with:
+            NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+            SSH_PASS: ${{ secrets.SSH_PASS }}
+
+
+
+
       ################################ WINDOWS STEPS END ################################
 
       - name: Tar FFmpeg Libs and Upload to AWS S3
