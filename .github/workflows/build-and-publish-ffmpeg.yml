@@ -52,12 +52,12 @@ jobs:
         uses: actions/checkout@v2
 
       # media-autobuild_suite needs to be in the C:\ drive, as it is very finicky with paths
-      - name: On Windows, Git Clone fractal/FFmpeg and m-ab-s/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
+      - name: On Windows, Git Clone fractal/FFmpeg and fractal/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
         if: runner.os == 'Windows'
         shell: cmd
         run: |
           # first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
-          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/m-ab-s/media-autobuild_suite.git" C:\media-autobuild_suite
+          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/media-autobuild_suite.git" C:\media-autobuild_suite
 
           # then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
           git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
@@ -150,12 +150,7 @@ jobs:
         run: .\media-autobuild_suite.bat
 
 
-      - name: Ssh with ngrok
-        if: always() && runner.os == 'Windows'
-        uses: luchihoratiu/debug-via-ssh@main
-        with:
-            NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-            SSH_PASS: ${{ secrets.SSH_PASS }}
+
 
 
 
