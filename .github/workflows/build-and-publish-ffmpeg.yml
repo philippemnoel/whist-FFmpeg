@@ -209,16 +209,24 @@ jobs:
                       # cd to the right directory
                       cd /c/media-autobuild_suite
 
+                      echo "==="
+                      ls
+                      echo "==="
+                      ls local64
+                      echo "==="
+                      ls local64/lib
+                      echo "==="
+
                       # create protocol-compliant lib folder and rename & move libs over
                       mkdir ${{ env.windows-build-folder }}
-                      mv local64/lib/libavcodec.a ${{ env.windows-build-folder }}/libavcodec.lib
-                      mv local64/lib/libavdevice.a ${{ env.windows-build-folder }}/libavdevice.lib
-                      mv local64/lib/libavfilter.a ${{ env.windows-build-folder }}/libavfilter.lib
-                      mv local64/lib/libavformat.a ${{ env.windows-build-folder }}/libavformat.lib
-                      mv local64/lib/libavutil.a ${{ env.windows-build-folder }}/libavutil.lib
-                      mv local64/lib/libpostproc.a ${{ env.windows-build-folder }}/libpostproc.lib
-                      mv local64/lib/libswresample.a ${{ env.windows-build-folder }}/libswresample.lib
-                      mv local64/lib/libswscale.a ${{ env.windows-build-folder }}/libswscale.lib
+                      mv local64/lib/libavcodec.lib ${{ env.windows-build-folder }}/libavcodec.lib
+                      mv local64/lib/libavdevice.lib ${{ env.windows-build-folder }}/libavdevice.lib
+                      mv local64/lib/libavfilter.lib ${{ env.windows-build-folder }}/libavfilter.lib
+                      mv local64/lib/libavformat.lib ${{ env.windows-build-folder }}/libavformat.lib
+                      mv local64/lib/libavutil.lib ${{ env.windows-build-folder }}/libavutil.lib
+                      mv local64/lib/libpostproc.lib ${{ env.windows-build-folder }}/libpostproc.lib
+                      mv local64/lib/libswresample.lib ${{ env.windows-build-folder }}/libswresample.lib
+                      mv local64/lib/libswscale.lib ${{ env.windows-build-folder }}/libswscale.lib
 
                       # tar and uplaod
                       tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
