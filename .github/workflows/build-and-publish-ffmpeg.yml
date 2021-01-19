@@ -6,405 +6,405 @@
 name: "Build & Publish Fractal FFmpeg"
 
 on:
-  push:
-    branches: [master, phil/ci]
-    paths-ignore:
-      - "README.md"
-  workflow_dispatch:
+    push:
+        branches: [master, phil/ci]
+        paths-ignore:
+            - "README.md"
+    workflow_dispatch:
 
 jobs:
-  build-and-publish-fractal-ffmpeg:
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
+    build-and-publish-fractal-ffmpeg:
+        name: ${{ matrix.config.name }}
+        runs-on: ${{ matrix.config.os }}
 
-    # Platforms to build on/for
-    strategy:
-      matrix:
-        config:
-          - name: "Build and Publish Fractal FFmpeg on Windows"
-            os: windows-2016
-          # - name: "Build and Publish Fractal FFmpeg on macOS"
-          #   os: macos-10.14 # Xcode and Homebrew preinstalled
-          # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-          #   os: ubuntu-18.04
-          #   emscripten-builder: false
-          # - name: "Build and Publish Fractal FFmpeg for Emscripten"
-          #   os: ubuntu-18.04
-          #   emscripten-builder: true
+        # Platforms to build on/for
+        strategy:
+            matrix:
+                config:
+                    - name: "Build and Publish Fractal FFmpeg on Windows"
+                      os: windows-2016
+                    # - name: "Build and Publish Fractal FFmpeg on macOS"
+                    #   os: macos-10.14 # Xcode and Homebrew preinstalled
+                    # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+                    #   os: ubuntu-18.04
+                    #   emscripten-builder: false
+                    # - name: "Build and Publish Fractal FFmpeg for Emscripten"
+                    #   os: ubuntu-18.04
+                    #   emscripten-builder: true
 
-    env:
-      windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
-      windows-build-folder: Windows
-      macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
-      macos-build-folder: Darwin
-      linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
-      linux-build-folder: Linux
-      emscripten-tar-name: fractal-emscripten-ffmpeg-lib.tar.gz
-      emscripten-build-folder: Web
-      headers-tar-name: fractal-ffmpeg-headers.tar.gz
-      headers-build-folder: include
-      s3-bucket-region: us-east-1
-      s3-bucket-uri: s3://fractal-protocol-shared-libs
-
-    steps:
-      - name: On macOS and Linux Ubuntu, Checkout this Git Repository Directly
-        if: runner.os == 'macOS' || runner.os == 'Linux'
-        uses: actions/checkout@v2
-
-      # media-autobuild_suite needs to be in the C:\ drive, as it is very finicky with paths
-      - name: On Windows, Git Clone fractal/FFmpeg and fractal/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          # first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
-          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/media-autobuild_suite.git" C:\media-autobuild_suite
-
-          # then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
-          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
-
-      # To publish FFmpeg builds to AWS S3
-      - name: Configure AWS S3 CLI
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.s3-bucket-region }}
-
-      ################################# MACOS STEPS START ###############################
-
-      - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          sudo chown -R `whoami`:admin /usr/local/bin
-          sudo chown -R `whoami`:admin /usr/local/share
-          sudo chown -R `whoami`:admin /usr/local/opt
-
-      - name: On macOS, Install FFmpeg macOS Dependencies
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          brew install \
-          automake fdk-aac git lame libass libtool libvorbis libvpx \
-          opus sdl shtool texi2html theora wget x264 x265 xvid nasm
-
-      # We disable commandline programs and SDL2 since we have our own SDL2 static build
-      # macOS hardware acceleration libraries (Videotoolbox, Audiotoolbox) are enabled by default
-      - name: On macOs, Configure and Make FFmpeg # only configure the minimum required flags for the Fractal protocol
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          ./configure \
-          --prefix=/usr/local --enable-gpl --enable-nonfree --enable-version3 \
-          --disable-programs --disable-doc --disable-debug --disable-sdl2 \
-          --enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
-          && make
-
-      ################################# MACOS STEPS END #################################
-
-      ############################# LINUX UBUNTU STEPS START ############################
-
-      - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
-        if: runner.os == 'Linux' && !matrix.config.emscripten-builder
-        shell: bash
-        run: |
-          # export environment variable
-          echo "EMSCRIPTEN_BUILDER=false" >> $GITHUB_ENV
-
-          # build
-          ./docker-build.sh 18
-
-      ############################# LINUX UBUNTU STEPS END ##############################
-
-      ############################## EMSCRIPTEN STEPS START #############################
-
-      - name: Build FFmpeg Targeting Emscripten through Docker
-        if: runner.os == 'Linux' && matrix.config.emscripten-builder
-        shell: bash
-        run: |
-          # export environment variable
-          echo "EMSCRIPTEN_BUILDER=true" >> $GITHUB_ENV
-
-          # build
-          ./docker-emcc-build
-
-      ############################## EMSCRIPTEN STEPS END ###############################
-
-      ################################ WINDOWS STEPS START ##############################
-
-      - name: On Windows, Install CUDA
-        if: runner.os == 'Windows'
         env:
-            visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
-            cuda: "11.0.167" # Imported from env in the .ps1 script
-        shell: powershell
-        run: |
-            .\.github\workflows\helpers\install_cuda_windows.ps1
-            if ($?) {
-              # Set paths for subsequent steps, using $env:CUDA_PATH
-              echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
-              echo "CUDA_PATH=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-              echo "$env:CUDA_PATH_VX_Y=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-              echo "$env:CUDA_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-            }
+            windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
+            windows-build-folder: Windows
+            macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
+            macos-build-folder: Darwin
+            linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
+            linux-build-folder: Linux
+            emscripten-tar-name: fractal-emscripten-ffmpeg-lib.tar.gz
+            emscripten-build-folder: Web
+            headers-tar-name: fractal-ffmpeg-headers.tar.gz
+            headers-build-folder: include
+            s3-bucket-region: us-east-1
+            s3-bucket-uri: s3://fractal-protocol-shared-libs
 
-      - name: On Windows, Verify that NVCC is Installed
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: |
-            nvcc -V
-            ls $env:CUDA_PATH
-            ls $env:CUDA_PATH\bin
-            ls $env:CUDA_PATH\include
+        steps:
+            - name: On macOS and Linux Ubuntu, Checkout this Git Repository Directly
+              if: runner.os == 'macOS' || runner.os == 'Linux'
+              uses: actions/checkout@v2
 
-      - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
-        if: runner.os == 'Windows'
-        shell: bash
-        working-directory: C:\media-autobuild_suite
-        run: |
-          cp \
-          build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
-          build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
-          build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
-          build/
+            # media-autobuild_suite needs to be in the C:\ drive, as it is very finicky with paths
+            - name: On Windows, Git Clone fractal/FFmpeg and fractal/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
+              if: runner.os == 'Windows'
+              shell: cmd
+              run: |
+                  # first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
+                  git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/media-autobuild_suite.git" C:\media-autobuild_suite
 
-      - name: On Windows, build FFmpeg via media-autobuild_suite from C:\ drive
-        if: runner.os == 'Windows'
-        working-directory: C:\media-autobuild_suite
-        shell: cmd
-        run: .\media-autobuild_suite.bat
+                  # then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
+                  git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
-      ################################ WINDOWS STEPS END ################################
+            # To publish FFmpeg builds to AWS S3
+            - name: Configure AWS S3 CLI
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+                  aws-region: ${{ env.s3-bucket-region }}
 
-      - name: Tar FFmpeg Libs and Upload to AWS S3
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-              if [ "$EMSCRIPTEN_BUILDER" == "true" ]; then # Emscripten libs
-                # create protocol-compliant lib folder and move libs over
-                mkdir ${{ env.emscripten-build-folder }}
-                mv \
-                libswresample/libswresample.a \
-                libavfilter/libavfilter.a \
-                libavformat/libavformat.a \
-                libavutil/libavutil.a \
-                libswscale/libswscale.a \
-                libavcodec/libavcodec.a \
-                ${{ env.emscripten-build-folder }}
+            ################################# MACOS STEPS START ###############################
 
-                # tar and uplaod
-                tar -zcvf ${{ env.emscripten-tar-name }} ${{ env.emscripten-build-folder }}
-                aws s3 cp ${{ env.emscripten-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.emscripten-tar-name }}
-              else # Ubuntu libs
-                # create protocol-compliant lib folder and move libs over
-                mkdir ${{ env.linux-build-folder }}
-                mv docker-builds/* ${{ env.linux-build-folder }}/
+            - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
+              if: runner.os == 'macOS'
+              shell: bash
+              run: |
+                  sudo chown -R `whoami`:admin /usr/local/bin
+                  sudo chown -R `whoami`:admin /usr/local/share
+                  sudo chown -R `whoami`:admin /usr/local/opt
 
-                # tar and uplaod
-                tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
-                aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
-              fi
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-              # cd to the right directory
-              cd /c/media-autobuild_suite
+            - name: On macOS, Install FFmpeg macOS Dependencies
+              if: runner.os == 'macOS'
+              shell: bash
+              run: |
+                  brew install \
+                  automake fdk-aac git lame libass libtool libvorbis libvpx \
+                  opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
-              # create protocol-compliant lib folder and rename & move libs over
-              mkdir ${{ env.windows-build-folder }}
-              mv local64/lib/libavcodec.a ${{ env.windows-build-folder }}/libavcodec.lib
-              mv local64/lib/libavdevice.a ${{ env.windows-build-folder }}/libavdevice.lib
-              mv local64/lib/libavfilter.a ${{ env.windows-build-folder }}/libavfilter.lib
-              mv local64/lib/libavformat.a ${{ env.windows-build-folder }}/libavformat.lib
-              mv local64/lib/libavutil.a ${{ env.windows-build-folder }}/libavutil.lib
-              mv local64/lib/libpostproc.a ${{ env.windows-build-folder }}/libpostproc.lib
-              mv local64/lib/libswresample.a ${{ env.windows-build-folder }}/libswresample.lib
-              mv local64/lib/libswscale.a ${{ env.windows-build-folder }}/libswscale.lib
+            # We disable commandline programs and SDL2 since we have our own SDL2 static build
+            # macOS hardware acceleration libraries (Videotoolbox, Audiotoolbox) are enabled by default
+            - name: On macOs, Configure and Make FFmpeg # only configure the minimum required flags for the Fractal protocol
+              if: runner.os == 'macOS'
+              shell: bash
+              run: |
+                  ./configure \
+                  --prefix=/usr/local --enable-gpl --enable-nonfree --enable-version3 \
+                  --disable-programs --disable-doc --disable-debug --disable-sdl2 \
+                  --enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+                  && make
 
-              # tar and uplaod
-              tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
-              aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
-          else
-              # create protocol-compliant lib folder and move libs over
-              mkdir ${{ env.macos-build-folder }}
-              mv libavcodec/libavcodec.a ${{ env.macos-build-folder }}/libavcodec.a
-              mv libavdevice/libavdevice.a ${{ env.macos-build-folder }}/libavdevice.a
-              mv libavfilter/libavfilter.a ${{ env.macos-build-folder }}/libavfilter.a
-              mv libavformat/libavformat.a ${{ env.macos-build-folder }}/libavformat.a
-              mv libavutil/libavutil.a ${{ env.macos-build-folder }}/libavutil.a
-              mv libpostproc/libpostproc.a ${{ env.macos-build-folder }}/libpostproc.a
-              mv libswresample/libswresample.a ${{ env.macos-build-folder }}/libswresample.a
-              mv libswscale/libswscale.a ${{ env.macos-build-folder }}/libswscale.a
+            ################################# MACOS STEPS END #################################
 
-              # tar and uplaod
-              tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
-              aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
-          fi
+            ############################# LINUX UBUNTU STEPS START ############################
 
-      - name: Tar FFmpeg headers and Upload to AWS S3
-        if: runner.os == 'Linux' && !matrix.config.emscripten-builder # Only run once, as headers are identical on every OS
-        shell: bash
-        run: |
-          # create protocol-compliant headers folder and subfolders
-          mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+            - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
+              if: runner.os == 'Linux' && !matrix.config.emscripten-builder
+              shell: bash
+              run: |
+                  # export environment variable
+                  echo "EMSCRIPTEN_BUILDER=false" >> $GITHUB_ENV
 
-          # move select header files over to tar, only the ones needed
-          # libavcodec
-          mv \
-          libavcodec/ac3_parser.h \
-          libavcodec/adts_parser.h \
-          libavcodec/avcodec.h \
-          libavcodec/avdct.h \
-          libavcodec/avfft.h \
-          libavcodec/d3d11va.h \
-          libavcodec/dirac.h \
-          libavcodec/dv_profile.h \
-          libavcodec/dxva2.h \
-          libavcodec/jni.h \
-          libavcodec/mediacodec.h \
-          libavcodec/qsv.h \
-          libavcodec/vaapi.h \
-          libavcodec/vdpau.h \
-          libavcodec/version.h \
-          libavcodec/videotoolbox.h \
-          libavcodec/vorbis_parser.h \
-          libavcodec/xvmc.h \
-          ${{ env.headers-build-folder }}/libavcodec/
+                  # build
+                  ./docker-build.sh 18
 
-          # libavdevice
-          mv \
-          libavdevice/avdevice.h \
-          libavdevice/version.h \
-          ${{ env.headers-build-folder }}/libavdevice/
+            ############################# LINUX UBUNTU STEPS END ##############################
 
-          # libavfilter
-          mv \
-          libavfilter/avfilter.h \
-          libavfilter/buffersink.h \
-          libavfilter/buffersrc.h \
-          libavfilter/version.h \
-          ${{ env.headers-build-folder }}/libavfilter/
+            ############################## EMSCRIPTEN STEPS START #############################
 
-          # libavformat
-          mv \
-          libavformat/avformat.h \
-          libavformat/avio.h \
-          libavformat/version.h \
-          ${{ env.headers-build-folder }}/libavformat/
+            - name: Build FFmpeg Targeting Emscripten through Docker
+              if: runner.os == 'Linux' && matrix.config.emscripten-builder
+              shell: bash
+              run: |
+                  # export environment variable
+                  echo "EMSCRIPTEN_BUILDER=true" >> $GITHUB_ENV
 
-          # libavutil
-          mv \
-          libavutil/adler32.h \
-          libavutil/aes.h \
-          libavutil/aes_ctr.h \
-          libavutil/attributes.h \
-          libavutil/audio_fifo.h \
-          libavutil/avassert.h \
-          libavutil/avstring.h \
-          libavutil/avutil.h \
-          libavutil/base64.h \
-          libavutil/blowfish.h \
-          libavutil/bprint.h \
-          libavutil/bswap.h \
-          libavutil/buffer.h \
-          libavutil/camellia.h \
-          libavutil/cast5.h \
-          libavutil/channel_layout.h \
-          libavutil/common.h \
-          libavutil/cpu.h \
-          libavutil/crc.h \
-          libavutil/des.h \
-          libavutil/dict.h \
-          libavutil/display.h \
-          libavutil/downmix_info.h \
-          libavutil/encryption_info.h \
-          libavutil/error.h \
-          libavutil/eval.h \
-          libavutil/fifo.h \
-          libavutil/file.h \
-          libavutil/frame.h \
-          libavutil/hash.h \
-          libavutil/hdr_dynamic_metadata.h \
-          libavutil/hmac.h \
-          libavutil/hwcontext.h \
-          libavutil/hwcontext_cuda.h \
-          libavutil/hwcontext_d3d11va.h \
-          libavutil/hwcontext_drm.h \
-          libavutil/hwcontext_dxva2.h \
-          libavutil/hwcontext_mediacodec.h \
-          libavutil/hwcontext_qsv.h \
-          libavutil/hwcontext_vaapi.h \
-          libavutil/hwcontext_vdpau.h \
-          libavutil/hwcontext_videotoolbox.h \
-          libavutil/imgutils.h \
-          libavutil/intfloat.h \
-          libavutil/intreadwrite.h \
-          libavutil/lfg.h \
-          libavutil/log.h \
-          libavutil/lzo.h \
-          libavutil/macros.h \
-          libavutil/mastering_display_metadata.h \
-          libavutil/mathematics.h \
-          libavutil/md5.h \
-          libavutil/mem.h \
-          libavutil/motion_vector.h \
-          libavutil/murmur3.h \
-          libavutil/opt.h \
-          libavutil/parseutils.h \
-          libavutil/pixdesc.h \
-          libavutil/pixelutils.h \
-          libavutil/pixfmt.h \
-          libavutil/random_seed.h \
-          libavutil/rational.h \
-          libavutil/rc4.h \
-          libavutil/replaygain.h \
-          libavutil/ripemd.h \
-          libavutil/samplefmt.h \
-          libavutil/sha.h \
-          libavutil/sha512.h \
-          libavutil/spherical.h \
-          libavutil/stereo3d.h \
-          libavutil/tea.h \
-          libavutil/threadmessage.h \
-          libavutil/time.h \
-          libavutil/timecode.h \
-          libavutil/timestamp.h \
-          libavutil/tree.h \
-          libavutil/twofish.h \
-          libavutil/tx.h \
-          libavutil/version.h \
-          libavutil/xtea.h \
-          ${{ env.headers-build-folder }}/libavutil/
+                  # build
+                  ./docker-emcc-build
 
-          # libpostproc
-          mv \
-          libpostproc/postprocess.h \
-          libpostproc/version.h \
-          ${{ env.headers-build-folder }}/libpostproc/
+            ############################## EMSCRIPTEN STEPS END ###############################
 
-          # libswresample
-          mv \
-          libswresample/swresample.h \
-          libswresample/version.h \
-          ${{ env.headers-build-folder }}/libswresample/
+            ################################ WINDOWS STEPS START ##############################
 
-          # libswscale
-          mv \
-          libswscale/swscale.h \
-          libswscale/version.h \
-          ${{ env.headers-build-folder }}/libswscale/
+            - name: On Windows, Install CUDA
+              if: runner.os == 'Windows'
+              env:
+                  visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
+                  cuda: "11.0.167" # Imported from env in the .ps1 script
+              shell: powershell
+              run: |
+                  .\.github\workflows\helpers\install_cuda_windows.ps1
+                  if ($?) {
+                    # Set paths for subsequent steps, using $env:CUDA_PATH
+                    echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
+                    echo "CUDA_PATH=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                    echo "$env:CUDA_PATH_VX_Y=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                    echo "$env:CUDA_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                  }
 
-          # tar and upload
-          tar -zcvf ${{ env.headers-tar-name }} include
-          aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
+            - name: On Windows, Verify that NVCC is Installed
+              if: runner.os == 'Windows'
+              shell: powershell
+              run: |
+                  nvcc -V
+                  ls $env:CUDA_PATH
+                  ls $env:CUDA_PATH\bin
+                  ls $env:CUDA_PATH\include
 
-  notify-slack:
-    name: Notify Slack
-    needs: [build-and-publish-fractal-ffmpeg]
-    if: success()
-    runs-on: ubuntu-20.04
+            - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
+              if: runner.os == 'Windows'
+              shell: bash
+              working-directory: C:\media-autobuild_suite
+              run: |
+                  cp \
+                  build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
+                  build/ffmpeg/.github/workflows/helpers/ffmpeg_options.txt \
+                  build/ffmpeg/.github/workflows/helpers/mpv_options.txt \
+                  build/
 
-    steps:
-      - name: Notify Slack
-        run: |
-          curl -X POST \
-          --data-urlencode "payload={\"channel\": \"#alerts\", \"username\": \"Fractal Bot\", \"text\": \"Fractal FFmpeg Static Build Deployed to Production via Upload to AWS S3.\", \"icon_emoji\": \":fractal:\"}" \
-          ${{ secrets.SLACK_HOOKS_ENDPOINT }}
+            - name: On Windows, build FFmpeg via media-autobuild_suite from C:\ drive
+              if: runner.os == 'Windows'
+              working-directory: C:\media-autobuild_suite
+              shell: cmd
+              run: .\media-autobuild_suite.bat
+
+            ################################ WINDOWS STEPS END ################################
+
+            - name: Tar FFmpeg Libs and Upload to AWS S3
+              shell: bash
+              run: |
+                  if [ "$RUNNER_OS" == "Linux" ]; then
+                      if [ "$EMSCRIPTEN_BUILDER" == "true" ]; then # Emscripten libs
+                        # create protocol-compliant lib folder and move libs over
+                        mkdir ${{ env.emscripten-build-folder }}
+                        mv \
+                        libswresample/libswresample.a \
+                        libavfilter/libavfilter.a \
+                        libavformat/libavformat.a \
+                        libavutil/libavutil.a \
+                        libswscale/libswscale.a \
+                        libavcodec/libavcodec.a \
+                        ${{ env.emscripten-build-folder }}
+
+                        # tar and uplaod
+                        tar -zcvf ${{ env.emscripten-tar-name }} ${{ env.emscripten-build-folder }}
+                        aws s3 cp ${{ env.emscripten-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.emscripten-tar-name }}
+                      else # Ubuntu libs
+                        # create protocol-compliant lib folder and move libs over
+                        mkdir ${{ env.linux-build-folder }}
+                        mv docker-builds/* ${{ env.linux-build-folder }}/
+
+                        # tar and uplaod
+                        tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
+                        aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+                      fi
+                  elif [ "$RUNNER_OS" == "Windows" ]; then
+                      # cd to the right directory
+                      cd /c/media-autobuild_suite
+
+                      # create protocol-compliant lib folder and rename & move libs over
+                      mkdir ${{ env.windows-build-folder }}
+                      mv local64/lib/libavcodec.a ${{ env.windows-build-folder }}/libavcodec.lib
+                      mv local64/lib/libavdevice.a ${{ env.windows-build-folder }}/libavdevice.lib
+                      mv local64/lib/libavfilter.a ${{ env.windows-build-folder }}/libavfilter.lib
+                      mv local64/lib/libavformat.a ${{ env.windows-build-folder }}/libavformat.lib
+                      mv local64/lib/libavutil.a ${{ env.windows-build-folder }}/libavutil.lib
+                      mv local64/lib/libpostproc.a ${{ env.windows-build-folder }}/libpostproc.lib
+                      mv local64/lib/libswresample.a ${{ env.windows-build-folder }}/libswresample.lib
+                      mv local64/lib/libswscale.a ${{ env.windows-build-folder }}/libswscale.lib
+
+                      # tar and uplaod
+                      tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
+                      aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
+                  else
+                      # create protocol-compliant lib folder and move libs over
+                      mkdir ${{ env.macos-build-folder }}
+                      mv libavcodec/libavcodec.a ${{ env.macos-build-folder }}/libavcodec.a
+                      mv libavdevice/libavdevice.a ${{ env.macos-build-folder }}/libavdevice.a
+                      mv libavfilter/libavfilter.a ${{ env.macos-build-folder }}/libavfilter.a
+                      mv libavformat/libavformat.a ${{ env.macos-build-folder }}/libavformat.a
+                      mv libavutil/libavutil.a ${{ env.macos-build-folder }}/libavutil.a
+                      mv libpostproc/libpostproc.a ${{ env.macos-build-folder }}/libpostproc.a
+                      mv libswresample/libswresample.a ${{ env.macos-build-folder }}/libswresample.a
+                      mv libswscale/libswscale.a ${{ env.macos-build-folder }}/libswscale.a
+
+                      # tar and uplaod
+                      tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
+                      aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
+                  fi
+
+            - name: Tar FFmpeg headers and Upload to AWS S3
+              if: runner.os == 'Linux' && !matrix.config.emscripten-builder # Only run once, as headers are identical on every OS
+              shell: bash
+              run: |
+                  # create protocol-compliant headers folder and subfolders
+                  mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+
+                  # move select header files over to tar, only the ones needed
+                  # libavcodec
+                  mv \
+                  libavcodec/ac3_parser.h \
+                  libavcodec/adts_parser.h \
+                  libavcodec/avcodec.h \
+                  libavcodec/avdct.h \
+                  libavcodec/avfft.h \
+                  libavcodec/d3d11va.h \
+                  libavcodec/dirac.h \
+                  libavcodec/dv_profile.h \
+                  libavcodec/dxva2.h \
+                  libavcodec/jni.h \
+                  libavcodec/mediacodec.h \
+                  libavcodec/qsv.h \
+                  libavcodec/vaapi.h \
+                  libavcodec/vdpau.h \
+                  libavcodec/version.h \
+                  libavcodec/videotoolbox.h \
+                  libavcodec/vorbis_parser.h \
+                  libavcodec/xvmc.h \
+                  ${{ env.headers-build-folder }}/libavcodec/
+
+                  # libavdevice
+                  mv \
+                  libavdevice/avdevice.h \
+                  libavdevice/version.h \
+                  ${{ env.headers-build-folder }}/libavdevice/
+
+                  # libavfilter
+                  mv \
+                  libavfilter/avfilter.h \
+                  libavfilter/buffersink.h \
+                  libavfilter/buffersrc.h \
+                  libavfilter/version.h \
+                  ${{ env.headers-build-folder }}/libavfilter/
+
+                  # libavformat
+                  mv \
+                  libavformat/avformat.h \
+                  libavformat/avio.h \
+                  libavformat/version.h \
+                  ${{ env.headers-build-folder }}/libavformat/
+
+                  # libavutil
+                  mv \
+                  libavutil/adler32.h \
+                  libavutil/aes.h \
+                  libavutil/aes_ctr.h \
+                  libavutil/attributes.h \
+                  libavutil/audio_fifo.h \
+                  libavutil/avassert.h \
+                  libavutil/avstring.h \
+                  libavutil/avutil.h \
+                  libavutil/base64.h \
+                  libavutil/blowfish.h \
+                  libavutil/bprint.h \
+                  libavutil/bswap.h \
+                  libavutil/buffer.h \
+                  libavutil/camellia.h \
+                  libavutil/cast5.h \
+                  libavutil/channel_layout.h \
+                  libavutil/common.h \
+                  libavutil/cpu.h \
+                  libavutil/crc.h \
+                  libavutil/des.h \
+                  libavutil/dict.h \
+                  libavutil/display.h \
+                  libavutil/downmix_info.h \
+                  libavutil/encryption_info.h \
+                  libavutil/error.h \
+                  libavutil/eval.h \
+                  libavutil/fifo.h \
+                  libavutil/file.h \
+                  libavutil/frame.h \
+                  libavutil/hash.h \
+                  libavutil/hdr_dynamic_metadata.h \
+                  libavutil/hmac.h \
+                  libavutil/hwcontext.h \
+                  libavutil/hwcontext_cuda.h \
+                  libavutil/hwcontext_d3d11va.h \
+                  libavutil/hwcontext_drm.h \
+                  libavutil/hwcontext_dxva2.h \
+                  libavutil/hwcontext_mediacodec.h \
+                  libavutil/hwcontext_qsv.h \
+                  libavutil/hwcontext_vaapi.h \
+                  libavutil/hwcontext_vdpau.h \
+                  libavutil/hwcontext_videotoolbox.h \
+                  libavutil/imgutils.h \
+                  libavutil/intfloat.h \
+                  libavutil/intreadwrite.h \
+                  libavutil/lfg.h \
+                  libavutil/log.h \
+                  libavutil/lzo.h \
+                  libavutil/macros.h \
+                  libavutil/mastering_display_metadata.h \
+                  libavutil/mathematics.h \
+                  libavutil/md5.h \
+                  libavutil/mem.h \
+                  libavutil/motion_vector.h \
+                  libavutil/murmur3.h \
+                  libavutil/opt.h \
+                  libavutil/parseutils.h \
+                  libavutil/pixdesc.h \
+                  libavutil/pixelutils.h \
+                  libavutil/pixfmt.h \
+                  libavutil/random_seed.h \
+                  libavutil/rational.h \
+                  libavutil/rc4.h \
+                  libavutil/replaygain.h \
+                  libavutil/ripemd.h \
+                  libavutil/samplefmt.h \
+                  libavutil/sha.h \
+                  libavutil/sha512.h \
+                  libavutil/spherical.h \
+                  libavutil/stereo3d.h \
+                  libavutil/tea.h \
+                  libavutil/threadmessage.h \
+                  libavutil/time.h \
+                  libavutil/timecode.h \
+                  libavutil/timestamp.h \
+                  libavutil/tree.h \
+                  libavutil/twofish.h \
+                  libavutil/tx.h \
+                  libavutil/version.h \
+                  libavutil/xtea.h \
+                  ${{ env.headers-build-folder }}/libavutil/
+
+                  # libpostproc
+                  mv \
+                  libpostproc/postprocess.h \
+                  libpostproc/version.h \
+                  ${{ env.headers-build-folder }}/libpostproc/
+
+                  # libswresample
+                  mv \
+                  libswresample/swresample.h \
+                  libswresample/version.h \
+                  ${{ env.headers-build-folder }}/libswresample/
+
+                  # libswscale
+                  mv \
+                  libswscale/swscale.h \
+                  libswscale/version.h \
+                  ${{ env.headers-build-folder }}/libswscale/
+
+                  # tar and upload
+                  tar -zcvf ${{ env.headers-tar-name }} include
+                  aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
+
+    notify-slack:
+        name: Notify Slack
+        needs: [build-and-publish-fractal-ffmpeg]
+        if: success()
+        runs-on: ubuntu-20.04
+
+        steps:
+            - name: Notify Slack
+              run: |
+                  curl -X POST \
+                  --data-urlencode "payload={\"channel\": \"#alerts\", \"username\": \"Fractal Bot\", \"text\": \"Fractal FFmpeg Static Build Deployed to Production via Upload to AWS S3.\", \"icon_emoji\": \":fractal:\"}" \
+                  ${{ secrets.SLACK_HOOKS_ENDPOINT }}
