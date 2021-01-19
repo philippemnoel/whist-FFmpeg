@@ -7,9 +7,11 @@ name: "Build & Publish Fractal FFmpeg"
 
 on:
     push:
-        branches: [master, phil/ci]
+        branches:
+          - master
+          - phil/ci
         paths-ignore:
-            - "README.md"
+          - "README.md"
     workflow_dispatch:
 
 jobs:
@@ -138,8 +140,9 @@ jobs:
                   visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
                   cuda: "11.0.167" # Imported from env in the .ps1 script
               shell: powershell
+              working-directory: C:\media-autobuild_suite
               run: |
-                  .\.github\workflows\helpers\install_cuda_windows.ps1
+                  .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
                   if ($?) {
                     # Set paths for subsequent steps, using $env:CUDA_PATH
                     echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
