@@ -132,6 +132,31 @@ jobs:
 
       ################################ WINDOWS STEPS START ##############################
 
+      - name: On Windows, Install CUDA
+        if: runner.os == 'Windows'
+        env:
+            visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
+            cuda: "11.0.167" # Imported from env in the .ps1 script
+        shell: powershell
+        run: |
+            .\.github\workflows\helpers\install_cuda_windows.ps1
+            if ($?) {
+              # Set paths for subsequent steps, using $env:CUDA_PATH
+              echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
+              echo "CUDA_PATH=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              echo "$env:CUDA_PATH_VX_Y=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              echo "$env:CUDA_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            }
+
+      - name: On Windows, Verify that NVCC is Installed
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+            nvcc -V
+            ls $env:CUDA_PATH
+            ls $env:CUDA_PATH\bin
+            ls $env:CUDA_PATH\include
+
       - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
         if: runner.os == 'Windows'
         shell: bash
@@ -148,14 +173,6 @@ jobs:
         working-directory: C:\media-autobuild_suite
         shell: cmd
         run: .\media-autobuild_suite.bat
-
-
-
-
-
-
-
-
 
       ################################ WINDOWS STEPS END ################################
 
@@ -188,26 +205,23 @@ jobs:
                 aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
               fi
           elif [ "$RUNNER_OS" == "Windows" ]; then
+              # cd to the right directory
+              cd /c/media-autobuild_suite
 
+              # create protocol-compliant lib folder and rename & move libs over
+              mkdir ${{ env.windows-build-folder }}
+              mv local64/lib/libavcodec.a ${{ env.windows-build-folder }}/libavcodec.lib
+              mv local64/lib/libavdevice.a ${{ env.windows-build-folder }}/libavdevice.lib
+              mv local64/lib/libavfilter.a ${{ env.windows-build-folder }}/libavfilter.lib
+              mv local64/lib/libavformat.a ${{ env.windows-build-folder }}/libavformat.lib
+              mv local64/lib/libavutil.a ${{ env.windows-build-folder }}/libavutil.lib
+              mv local64/lib/libpostproc.a ${{ env.windows-build-folder }}/libpostproc.lib
+              mv local64/lib/libswresample.a ${{ env.windows-build-folder }}/libswresample.lib
+              mv local64/lib/libswscale.a ${{ env.windows-build-folder }}/libswscale.lib
 
-
-
-              # TODO
-              tar -zcvf ${{ env.windows-tar-name }} SDL2-static.lib
+              # tar and uplaod
+              tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
               aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
-
-              
-
-
-
-
-
-
-
-
-
-
-
           else
               # create protocol-compliant lib folder and move libs over
               mkdir ${{ env.macos-build-folder }}
