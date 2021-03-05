@@ -17,7 +17,8 @@ $CUDA_KNOWN_URLS = @{
     "11.0.167" = "http://developer.download.nvidia.com/compute/cuda/11.0.1/network_installers/cuda_11.0.1_win10_network.exe"
 }
 
-# @todo - change this to be based on _MSC_VER instead, or invert it to be CUDA keyed instead?
+# TODO - change this to be based on _MSC_VER instead, or invert it to be CUDA keyed instead?
+# See https://github.com/fractal/FFmpeg/issues/7
 $VISUAL_STUDIO_MIN_CUDA = @{
     "2019" = "10.1";
     "2017" = "10.0"; # Depends on which version of 2017! 9.0 to 10.0 depending on  version
@@ -25,7 +26,8 @@ $VISUAL_STUDIO_MIN_CUDA = @{
 }
 
 # cuda_runtime.h is in nvcc <= 10.2, but cudart >= 11.0
-# @todo - make this easier to vary per CUDA version.
+# TODO - make this easier to vary per CUDA version.
+# See https://github.com/fractal/FFmpeg/issues/7
 $CUDA_PACKAGES_IN = @(
     "nvcc";
     "visual_studio_integration";
