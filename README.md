@@ -39,9 +39,7 @@ git push origin <current branch>
 
 ## Fractal Changelog
 
-Here's a list of modifications we have made to the original FFmpeg fork:
-
-- Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace `sw_scale` entirely in the Nvidia GPU) 
+This fork was originally created to add 0RGB32 Cuda resizing to the `scale_cuda` filter (so that we could replace `sw_scale` entirely in the Nvidia GPU), but this has since been taken care of upstream. Right now, there are no FFmpeg source modifications we have made.
 
 We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
 
