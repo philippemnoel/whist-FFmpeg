@@ -61,7 +61,7 @@ jobs:
                   git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/media-autobuild_suite.git" C:\media-autobuild_suite
 
                   REM then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
-                  REM git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
+                  git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
             - name: Configure AWS S3 CLI
               uses: aws-actions/configure-aws-credentials@v1
