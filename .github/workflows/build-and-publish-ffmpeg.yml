@@ -57,11 +57,11 @@ jobs:
               if: runner.os == 'Windows'
               shell: cmd
               run: |
-                  # first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
+                  REM first, clone m-ab-s/media-autobuild_suite to C:\media-autobuild_suite
                   git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/media-autobuild_suite.git" C:\media-autobuild_suite
 
-                  # then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
-                  # git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
+                  REM then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
+                  REM git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
             - name: Configure AWS S3 CLI
               uses: aws-actions/configure-aws-credentials@v1
