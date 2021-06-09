@@ -10,7 +10,8 @@ cd FFmpeg
 --enable-opengl --enable-frei0r --enable-libfdk-aac --enable-libx264 --enable-libx265 \
 --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc \
 --enable-cuda-nvcc --enable-nvenc --enable-nvdec --enable-libmfx \
---enable-filter=frei0r --enable-filter=scale_cuda
+	    --enable-filter=frei0r --enable-filter=scale_cuda \
+	    --disable-static --enable-shared
 
 # Build FFmpeg and move static/shared libs
 make -j8 && rm -rf linux-build && mkdir linux-build
