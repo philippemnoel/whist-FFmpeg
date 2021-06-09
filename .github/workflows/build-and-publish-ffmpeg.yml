@@ -200,14 +200,14 @@ jobs:
                   else
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
-                      mv libavcodec/libavcodec.a ${{ env.macos-build-folder }}/libavcodec.a
-                      mv libavdevice/libavdevice.a ${{ env.macos-build-folder }}/libavdevice.a
-                      mv libavfilter/libavfilter.a ${{ env.macos-build-folder }}/libavfilter.a
-                      mv libavformat/libavformat.a ${{ env.macos-build-folder }}/libavformat.a
-                      mv libavutil/libavutil.a ${{ env.macos-build-folder }}/libavutil.a
-                      mv libpostproc/libpostproc.a ${{ env.macos-build-folder }}/libpostproc.a
-                      mv libswresample/libswresample.a ${{ env.macos-build-folder }}/libswresample.a
-                      mv libswscale/libswscale.a ${{ env.macos-build-folder }}/libswscale.a
+                      mv libavcodec/libavcodec.58.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
+                      mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58dylib
+                      mv libavfilter/libavfilter.7.dylib ${{ env.macos-build-folder }}/libavfilter.7.dylib
+                      mv libavformat/libavformat.58.dylib ${{ env.macos-build-folder }}/libavformat.58.dylib
+                      mv libavutil/libavutil.56.dylib ${{ env.macos-build-folder }}/libavutil.56.dylib
+                      mv libpostproc/libpostproc.55.dylib ${{ env.macos-build-folder }}/libpostproc.55.dylib
+                      mv libswresample/libswresample.3.dylib ${{ env.macos-build-folder }}/libswresample.3.dylib
+                      mv libswscale/libswscale.5.dylib ${{ env.macos-build-folder }}/libswscale.5.dylib
 
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
