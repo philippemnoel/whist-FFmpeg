@@ -177,9 +177,7 @@ jobs:
               working-directory: C:\media-autobuild_suite
               shell: cmd
               run: |
-                git config --global user.name "${{ secrets.GHA_USERNAME }}"
-                git config --global user.password "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
-                .\media-autobuild_suite.bat
+                .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
 
             ################################ WINDOWS STEPS END ################################
 
