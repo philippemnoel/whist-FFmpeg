@@ -1,6 +1,3 @@
-
-Modified-by: Serina Hu <serina_hu@college.harvard.edu>
-
 ## -------------------
 ## Constants
 ## -------------------
