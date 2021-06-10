@@ -190,7 +190,7 @@ jobs:
                       mv local64/bin-video/avfilter-7.dll ${{ env.windows-build-folder }}/avfilter-7.dll
                       mv local64/bin-video/avformat-58.dll ${{ env.windows-build-folder }}/avformat-58.dll
                       mv local64/bin-video/avutil-56.dll ${{ env.windows-build-folder }}/avutil-56.dll
-                      mv local64/bin-video/postproc-56.dll ${{ env.windows-build-folder }}/postproc-56.dll
+                      mv local64/bin-video/postproc-55.dll ${{ env.windows-build-folder }}/postproc-55.dll
                       mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
                       mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
 
