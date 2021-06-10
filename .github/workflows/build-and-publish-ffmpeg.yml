@@ -115,7 +115,7 @@ jobs:
               if: runner.os == 'Windows'
               shell: cmd
               run: |
-                dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\"
+                dir "C:\Program Files (x86)\Microsoft Visual Studio\"
                 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 
             - name: On Windows, Install CUDA
