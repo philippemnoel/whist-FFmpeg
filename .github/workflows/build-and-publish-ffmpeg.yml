@@ -24,17 +24,17 @@ jobs:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
                       os: windows-2016
-                    # - name: "Build and Publish Fractal FFmpeg on macOS"
-                    #   os: macos-10.14 # Xcode and Homebrew preinstalled
-                    # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-                    #   os: ubuntu-18.04
+                    - name: "Build and Publish Fractal FFmpeg on macOS"
+                      os: macos-10.14 # Xcode and Homebrew preinstalled
+                    - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+                      os: ubuntu-18.04
 
         env:
-            windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
+            windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
             windows-build-folder: Windows
-            macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
+            macos-tar-name: fractal-macos-ffmpeg-shared-lib.tar.gz
             macos-build-folder: Darwin
-            linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
+            linux-tar-name: fractal-linux-ffmpeg-shared-lib.tar.gz
             linux-build-folder: Linux
             headers-tar-name: fractal-ffmpeg-headers.tar.gz
             headers-build-folder: include
