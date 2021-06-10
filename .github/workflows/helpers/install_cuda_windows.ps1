@@ -3,6 +3,7 @@
 ## -------------------
 
 # Dictionary of known cuda versions and thier download URLS, which do not follow a consistent pattern :(
+# We only hardcode the inconsistent ones, i.e. before 10.1.105
 $CUDA_KNOWN_URLS = @{
     "8.0.44" = "http://developer.nvidia.com/compute/cuda/8.0/Prod/network_installers/cuda_8.0.44_win10_network-exe";
     "8.0.61" = "http://developer.nvidia.com/compute/cuda/8.0/Prod2/network_installers/cuda_8.0.61_win10_network-exe";
@@ -10,17 +11,6 @@ $CUDA_KNOWN_URLS = @{
     "9.1.85" = "http://developer.nvidia.com/compute/cuda/9.1/Prod/network_installers/cuda_9.1.85_win10_network";
     "9.2.148" = "http://developer.nvidia.com/compute/cuda/9.2/Prod2/network_installers2/cuda_9.2.148_win10_network";
     "10.0.130" = "http://developer.nvidia.com/compute/cuda/10.0/Prod/network_installers/cuda_10.0.130_win10_network";
-    "10.1.105" = "http://developer.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.105_win10_network.exe";
-    "10.1.168" = "http://developer.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.168_win10_network.exe";
-    "10.1.243" = "http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.243_win10_network.exe";
-    "10.2.89" = "http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe";
-    "11.0.167" = "http://developer.download.nvidia.com/compute/cuda/11.0.1/network_installers/cuda_11.0.1_win10_network.exe";
-    "11.1.0" = "https://developer.download.nvidia.com/compute/cuda/11.1.0/network_installers/cuda_11.1.0_win10_network.exe";
-    "11.1.1" = "https://developer.download.nvidia.com/compute/cuda/11.1.1/network_installers/cuda_11.1.1_win10_network.exe";
-    "11.2.0" = "https://developer.download.nvidia.com/compute/cuda/11.2.0/network_installers/cuda_11.2.0_win10_network.exe";
-    "11.2.1" = "https://developer.download.nvidia.com/compute/cuda/11.2.1/network_installers/cuda_11.2.1_win10_network.exe";
-    "11.3.0" = "https://developer.download.nvidia.com/compute/cuda/11.3.0/network_installers/cuda_11.3.0_win10_network.exe";
-    "11.3.1" = "https://developer.download.nvidia.com/compute/cuda/11.3.1/network_installers/cuda_11.3.1_win10_network.exe";
 }
 
 # CUDA version <-> max/min msc versions supported
@@ -81,6 +71,7 @@ if(-not $cuda_ver_matched){
 $CUDA_MAJOR=$Matches.major
 $CUDA_MINOR=$Matches.minor
 $CUDA_PATCH=$Matches.patch
+$CUDA_FIRSTPATCH = $CUDA_PATCH.SubString(0, 1)
 
 ## ---------------------------
 ## Visual studio support check
@@ -138,17 +129,38 @@ echo "$($CUDA_PACKAGES)"
 ## -----------------
 ## Prepare download
 ## -----------------
-
 # Select the download link if known, otherwise have a guess.
 $CUDA_REPO_PKG_REMOTE=""
 if($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
+    # we hardcoded the URL
     $CUDA_REPO_PKG_REMOTE=$CUDA_KNOWN_URLS[$CUDA_VERSION_FULL]
-} else{
-    # Guess what the url is given the most recent pattern (at the time of writing, 10.1)
-    Write-Output "note: URL for CUDA ${$CUDA_VERSION_FULL} not known, estimating."
-    $CUDA_REPO_PKG_REMOTE="http://developer.download.nvidia.com/compute/cuda/$($CUDA_MAJOR).$($CUDA_MINOR)/Prod/network_installers/cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
+} else {
+    # "Guess" the URL
+    $CUDA_URL_START = ""
+    if ([version]$CUDA_VERSION_FULL -lt [version]"10.1.243") {
+	$CUDA_URL_START = "https://developer.nvidia.com/compute/cuda"
+    } else {
+	$CUDA_URL_START = "https://developer.download.nvidia.com/compute/cuda"
+    }
+    $CUDA_URL_VERSION = ""
+    $CUDA_PROD = ""
+    if ([version]$CUDA_VERSION_FULL -lt [version]"11.0.0") {
+	$CUDA_URL_VERSION = "$($CUDA_MAJOR).$($CUDA_MINOR)"
+	$CUDA_PROD = "Prod/"
+    } else {
+	$CUDA_URL_VERSION = "$($CUDA_MAJOR).$($CUDA_MINOR).$($CUDA_FIRSTPATCH)"
+    }
+    $CUDA_EXE = ""
+    if ([version]$CUDA_VERSION_FULL -lt [version]"11.0.0") {
+	$CUDA_EXE = "cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
+    } else {
+	$CUDA_EXE = "cuda_$($CUDA_URL_VERSION)_win10_network.exe"
+    }
+    $CUDA_REPO_PKG_REMOTE = "$($CUDA_URL_START)/$($CUDA_URL_VERSION)/$($CUDA_PROD)network_installers/$($CUDA_EXE)"
+    # before 10.1.243
+    Write-Output "Downloading CUDA version $($CUDA_VERSION_FULL) from $($CUDA_REPO_PKG_REMOTE)..."
 }
-$CUDA_REPO_PKG_LOCAL="cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
+$CUDA_REPO_PKG_LOCAL=$CUDA_EXE
 
 
 ## ------------
