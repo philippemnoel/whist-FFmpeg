@@ -1,3 +1,6 @@
+
+Modified-by: Serina Hu <serina_hu@college.harvard.edu>
+
 ## -------------------
 ## Constants
 ## -------------------
@@ -14,15 +17,42 @@ $CUDA_KNOWN_URLS = @{
     "10.1.168" = "http://developer.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.168_win10_network.exe";
     "10.1.243" = "http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.243_win10_network.exe";
     "10.2.89" = "http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe";
-    "11.0.167" = "http://developer.download.nvidia.com/compute/cuda/11.0.1/network_installers/cuda_11.0.1_win10_network.exe"
+    "11.0.167" = "http://developer.download.nvidia.com/compute/cuda/11.0.1/network_installers/cuda_11.0.1_win10_network.exe";
+    "11.1.0" = "https://developer.download.nvidia.com/compute/cuda/11.1.0/network_installers/cuda_11.1.0_win10_network.exe";
+    "11.1.1" = "https://developer.download.nvidia.com/compute/cuda/11.1.1/network_installers/cuda_11.1.1_win10_network.exe";
+    "11.2.0" = "https://developer.download.nvidia.com/compute/cuda/11.2.0/network_installers/cuda_11.2.0_win10_network.exe";
+    "11.2.1" = "https://developer.download.nvidia.com/compute/cuda/11.2.1/network_installers/cuda_11.2.1_win10_network.exe";
+    "11.3.0" = "https://developer.download.nvidia.com/compute/cuda/11.3.0/network_installers/cuda_11.3.0_win10_network.exe";
+    "11.3.1" = "https://developer.download.nvidia.com/compute/cuda/11.3.1/network_installers/cuda_11.3.1_win10_network.exe";
 }
 
-# TODO - change this to be based on _MSC_VER instead, or invert it to be CUDA keyed instead?
-# See https://github.com/fractal/FFmpeg/issues/7
-$VISUAL_STUDIO_MIN_CUDA = @{
-    "2019" = "10.1";
-    "2017" = "10.0"; # Depends on which version of 2017! 9.0 to 10.0 depending on  version
-    "2015" = "8.0"; # might support older, unsure.
+# CUDA version <-> max/min msc versions supported
+$CUDA_MAX_MSC_SUPPORT = @{
+    "11.3" = "1929";
+    "11.2" = "1929";
+    "11.1" = "1929";
+    "11.0" = "1929";
+    "10.2" = "1929";
+    "10.1" = "1929";
+    "10.0" = "1916";
+    "9.2" = "1913";
+    "9.1" = "1910";
+    "9.0" = "1910";
+    "8.0" = "1900";
+}
+
+$CUDA_MIN_MSC_SUPPORT = @{
+    "11.3" = "1910";
+    "11.2" = "1910";
+    "11.1" = "1910";
+    "11.0" = "1700";
+    "10.2" = "1700";
+    "10.1" = "1700";
+    "10.0" = "1700";
+    "9.2" = "1700";
+    "9.1" = "1700";
+    "9.0" = "1700";
+    "8.0" = "1700";
 }
 
 # cuda_runtime.h is in nvcc <= 10.2, but cudart >= 11.0
@@ -58,19 +88,22 @@ $CUDA_PATCH=$Matches.patch
 ## ---------------------------
 ## Visual studio support check
 ## ---------------------------
-# Exit if visual studio is too new for the cuda version.
-$VISUAL_STUDIO = $env:visual_studio.trim()
-if ($VISUAL_STUDIO.length -ge 4) {
-$VISUAL_STUDIO_YEAR = $VISUAL_STUDIO.Substring($VISUAL_STUDIO.Length-4)
-    if ($VISUAL_STUDIO_YEAR.length -eq 4 -and $VISUAL_STUDIO_MIN_CUDA.containsKey($VISUAL_STUDIO_YEAR)){
-        $MINIMUM_CUDA_VERSION = $VISUAL_STUDIO_MIN_CUDA[$VISUAL_STUDIO_YEAR]
-        if ([version]$CUDA_VERSION_FULL -lt [version]$MINIMUM_CUDA_VERSION) {
-            Write-Output "Error: Visual Studio $($VISUAL_STUDIO_YEAR) requires CUDA >= $($MINIMUM_CUDA_VERSION)"
-            exit 1
-        }
+
+# Exit if VS compiler version isn't supported by cuda version
+# We get the compiler version by checking installed visual c++ versions
+"_MSC_VER" | Out-File -FilePath mscver.c
+$MSC_VER = cl /nologo /EP mscver.c | Select-Object -last 1
+Write-Output "Found Microsoft C++ version $($MSC_VER)"
+$CUDA_MAJOR_MINOR = $CUDA_MAJOR + "." + $CUDA_MINOR
+if ($MSC_VER.length -ge 4) {
+    $MIN_MSC_VER = $CUDA_MIN_MSC_SUPPORT[$CUDA_MAJOR_MINOR]
+    $MAX_MSC_VER = $CUDA_MAX_MSC_SUPPORT[$CUDA_MAJOR_MINOR]
+    if (([int]$MSC_VER -gt [int]$MAX_MSC_VER) -or ([int]$MSC_VER -lt [int]$MIN_MSC_VER)) {
+	Write-Output "Error: CUDA $($CUDA_MAJOR_MINOR) requires Microsoft C++ $($MIN_MSC_VER)-$($MAX_MSC_VER)"
+	exit 1
     }
 } else {
-    Write-Output "Warning: Unknown Visual Studio Version. CUDA version may be insufficient."
+    Write-Output "Warning: Unknown Microsoft C++ Version. CUDA version may not be compatible."
 }
 
 ## ------------------------------------------------
