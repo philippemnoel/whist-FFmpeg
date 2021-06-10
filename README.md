@@ -41,93 +41,50 @@ git push origin <current branch>
 
 This fork was originally created to add 0RGB32 Cuda resizing to the `scale_cuda` filter (so that we could replace `sw_scale` entirely in the Nvidia GPU), but this has since been taken care of upstream. Right now, there are no FFmpeg source modifications we have made.
 
-We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
+We have also added Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
 
 We have modified the data alignment in `libavutil/mem.c` to force `av_malloc` to align with system pagesize, instead of a fixed number like 16/32. This allows us to shave one memcpy when integrating with SDL's rendering system under Metal on macOS.
 
 ## Building
 
-### Windows
+After every push to `main`, shared FFmpeg libraries will be built and published to AWS S3, which will be deployed automatically during the next `fractal/fractal` update. **Only stable changes should be deployed to `main`.**
 
-To build this version of FFmpeg for Windows, refer to the Fractal repository [`ffmpeg-windows-build-helpers`](https://github.com/fractal/ffmpeg-windows-build-helpers).
+The workflow is in `.github/workflows/build-and-publish-ffmpeg.yml`. The instructions for building on local machines are essentially identical to the publishing workflow, so we describe both below and note any differences. 
 
+After FFmpeg has built libraries successfully, move them into the `fractal/protocol/lib/64/ffmpeg/$OS/` folder and edit `protocol/CMakeLists.txt` accordingly if version numbers have changed. In addition, move the header files for `libavcodec`, `libavdevice`, `libavfilter`, `libavformat`, `libavutil`, `libpostproc`, `libswresample`, and `libswscale` into `fractal/protocol/include/ffmpeg/`. Not all the header files are needed; see the YAML workflow script to see which ones protocol uses.
 
-      # run this from cmd
+### macOS
 
-      # 1- echo 3 to build for 64-bit systems
-      # 2- echo 1 to build non-free dependencies
-      # 3- echo 2 to NOT build standalone binaries for libraries included in FFmpeg
-      # 4- echo 2 to NOT build VP8/9 encoder
-      # 5- echo 2 to NOT build aom
-      # 6- echo 2 to NOT build rav1e
-      # 7- echo 2 to NOT build dav1d
-      # 8- echo 2 to NOT build libavif
-      # 9- echo 2 to NOT build jpeg-xl
-      # 10- echo 4 to build x264 with lib/binary with 8 and 10-bit, and libavformat and ffms2
-      # 11- echo 1 to build x265 with lib/binary with Main, Main10 and Main12
-      # 12- echo 1 to build Kvazaar (H.265 encoder)
-      # 13- echo 1 to build SVT-HEVC (H.265 encoder)
-      # 14- echo 2 to NOT build xvc (HEVC and AV1 competitor)
-      # 15- echo 2 to NOT build Fraunhofer VVC (H.265 successor enc/decoder)
-      # 16- echo 2 to NOT build SVT-AV1 (AV1 encoder)
-      # 17- echo 2 to NOT build SVT-VP9 (VP9 encoder)
-      # 18- echo 2 to NOT build FLAC (Free Lossless Audio Codec)
-      # 19- echo 1 to build FDK-AAC (AAC-LC/HE/HEv2 codec)
-      # 20- echo 2 to NOT build FAAC (old, low-quality and non-free AAC-LC codec)
-      # 21- echo 2 to NOT build exhale binary (open-source ISO/IEC 23003-3 USAC, xHE-AAC encoder)
-      # 22- echo 2 to NOT build mediainfo binaries (Multimedia file information tool)
-      # 23- echo 2 to NOT build sox binaries (Sound processing tool)
-      # 24- echo 1 to build STATIC FFmpeg libraries
-      # 25- echo 1 to "Always build FFmpeg when libraries have been updated" -- this is irrelevant here since GHA VMs are wiped after runs
-      # 26- echo 1 to "Choose ffmpeg and mpv optional libraries"
+To build FFmpeg on macOS, first install homebrew and the ffmpeg dependencies via
+```
+brew install \
+automake fdk-aac git lame libass libtool libvorbis libvpx \
+opus sdl shtool texi2html theora wget x264 x265 xvid nasm
+```
 
-      # 27- echo "c" to continue with ffmpeg_options.txt file
-      # 28- echo "c" to continue with mpv_options.txt file
-
-      # 29- echo 2 to NOT build mp4box (mp4 muxer/toolbox)
-      # 30- echo 2 to NOT build rtmpdump binaries (rtmp tools)
-      # 31- echo 2 to NOT build static mplayer/mencoder (UNSUPPORTED)
-      # 32- echo 2 to NOT build mpv
-      # 33- echo 2 to NOT build vlc
-      # 34- echo 2 to NOT build bmx
-      # 35- echo 2 to NOT build static curl
-      # 36- echo 2 to NOT build FFMedia Broadcast binary (UNSUPPORTED)
-      # 37- echo 2 to NOT build cyanrip (CLI CD ripper)
-      # 38- echo 2 to NOT build redshift (f.lux FOSS clone)
-      # 39- echo 2 to NOT build ripgrep (faster grep in Rust)
-      # 40- echo 2 to NOT build jq (CLI JSON processor)
-      # 41- echo 2 to NOT build jo (CLI JSON from shell)
-      # 42- echo 2 to NOT build dssim (multiscale SSIM in Rust)
-      # 43- echo 1 to build avs2 (Audio Video Coding Standard Gen2 encoder/decoder)
-      # 44- echo 2 to NOT use clang instead of gcc (Recommended)
-      # 45- echo 2 to use 2 cores for compilation (GHA VMs have only 2 cores)
-      # 46- echo 1 to delete versioned source folders after compile is done
-      # 47- echo 1 to strip compiled files binaries
-      # 48- echo 2 to NOT pack compiled files
-      # 49- echo 1 to write logs of compilation commands
-      # 50- echo 2 to NOT create script to update suite files automatically
-      # 51- echo 1 to show timestamps of commands during compilation
-      # 52- echo 2 to NOT use ccache when compiling
-      # 53- echo 1 to disable mintty and print the output to this console
-
-
-
+Then, run `./configure` with the desired flags. The flags used in the build and publish workflow are
+```
+./configure \
+--prefix=@loader-path --libdir=@loader-path \
+--enable-gpl --enable-nonfree --enable-version3 \
+--disable-programs --disable-doc --disable-debug --disable-sdl2 \
+--enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
+--enable-videotoolbox --enable-audiotoolbox --enable-pthreads \
+--disable-static --enable-shared
+```
+To customize the build, run `./configure --help` or read `configure` to see what flags are available. Finally, run `make`. The libraries will be in the `libavcodec`, `libavdevice`, etc. folders.
 
 ### Linux Ubuntu - Docker
 
-To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18, for Ubuntu 18.04, and 20, for Ubuntu 20.04, are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder.
+To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18, for Ubuntu 18.04, and 20, for Ubuntu 20.04, are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder. The docker build script contains the flags we use when building on Linux, so if you want to build static libraries or enable/disable different components, you must modify `docker-build.sh`. As above, to see what flags are valid, run `./configure --help` or read the `configure` file.
 
-### Emscripten
+### Windows
 
-To build targeting Emscripten, install and setup `docker` on your machine, then run `./docker-emcc-build`. The built static library will appear in the root of this directory.
+We use Media Autobuild Suite to compile FFmpeg on Windows whose `media-autobuild_suite.bat` file is the equivalent of `./configure && make`. First, clone `https://github.com/fractal/media-autobuild_suite` into `C:\media-autobuild_suite` and `cd` there; our own fork uses our fork of FFmpeg rather than upstream FFmpeg. Then, copy all files except the `.ps1` script in `.github/workflows/helpers/` to the `build/` directory in Media Autobuild Suite. There should be no need to touch the `.sh` scripts. Configuration is done through `media-autobuild_suite.ini`, `ffmpeg_options.txt`, and `mpv_options.txt`. The `options.txt` files contain compile flags for their respective programs; feel free to comment/uncomment flags, and add new ones under the `Fractal-added options` heading. The `.ini` file contains Media Autobuild Suite options. The options in the `.ini` file are documented in `media-autobuild_suite.bat`; importantly, to build shared or static libraries, you MUST change `ffmpegB2` instead of changing the flags in `ffmpeg_options.txt`.
 
+Then, make sure CUDA is installed. You can install the desired version of CUDA either through the Nvidia website or using the `install_cuda_windows.ps1` script in `.github/workflows/helpers/`. Before running the script, set `$env:cuda` to the desired version you want.
 
-
-
-
-
-
-
+Finally, run `media-autobuild_suite.bat`. The first build will take a while, probably at least an hour, because the batch file also needs to install a lot of packages via msys2. The shared libraries will be in `local64/bin-video` and static libraries will be in `local64/lib`.
 
 ---
 
