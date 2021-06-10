@@ -202,7 +202,7 @@ jobs:
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
                       mv libavcodec/libavcodec.58.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
-                      mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58dylib
+                      mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58.dylib
                       mv libavfilter/libavfilter.7.dylib ${{ env.macos-build-folder }}/libavfilter.7.dylib
                       mv libavformat/libavformat.58.dylib ${{ env.macos-build-folder }}/libavformat.58.dylib
                       mv libavutil/libavutil.56.dylib ${{ env.macos-build-folder }}/libavutil.56.dylib
