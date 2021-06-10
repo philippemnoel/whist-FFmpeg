@@ -157,8 +157,6 @@ if($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
 	$CUDA_EXE = "cuda_$($CUDA_URL_VERSION)_win10_network.exe"
     }
     $CUDA_REPO_PKG_REMOTE = "$($CUDA_URL_START)/$($CUDA_URL_VERSION)/$($CUDA_PROD)network_installers/$($CUDA_EXE)"
-    # before 10.1.243
-    Write-Output "Downloading CUDA version $($CUDA_VERSION_FULL) from $($CUDA_REPO_PKG_REMOTE)..."
 }
 $CUDA_REPO_PKG_LOCAL=$CUDA_EXE
 
