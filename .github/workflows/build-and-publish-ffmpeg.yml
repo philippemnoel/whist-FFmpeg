@@ -24,10 +24,10 @@ jobs:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
                       os: windows-2016
-                    - name: "Build and Publish Fractal FFmpeg on macOS"
-                      os: macos-10.14 # Xcode and Homebrew preinstalled
-                    - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-                      os: ubuntu-18.04
+                    # - name: "Build and Publish Fractal FFmpeg on macOS"
+                    #   os: macos-10.14 # Xcode and Homebrew preinstalled
+                    # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+                    #   os: ubuntu-18.04
 
         env:
             windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
@@ -180,21 +180,21 @@ jobs:
                       echo "==="
                       ls local64
                       echo "==="
-                      ls local64/lib
+                      ls local64/bin-video
                       echo "==="
 
                       # create protocol-compliant lib folder and rename & move libs over
                       mkdir ${{ env.windows-build-folder }}
-                      mv local64/lib/libavcodec.lib ${{ env.windows-build-folder }}/libavcodec.lib
-                      mv local64/lib/libavdevice.lib ${{ env.windows-build-folder }}/libavdevice.lib
-                      mv local64/lib/libavfilter.lib ${{ env.windows-build-folder }}/libavfilter.lib
-                      mv local64/lib/libavformat.lib ${{ env.windows-build-folder }}/libavformat.lib
-                      mv local64/lib/libavutil.lib ${{ env.windows-build-folder }}/libavutil.lib
-                      mv local64/lib/libpostproc.lib ${{ env.windows-build-folder }}/libpostproc.lib
-                      mv local64/lib/libswresample.lib ${{ env.windows-build-folder }}/libswresample.lib
-                      mv local64/lib/libswscale.lib ${{ env.windows-build-folder }}/libswscale.lib
+                      mv local64/bin-video/avcodec-58.dll ${{ env.windows-build-folder }}/avcodec-58.dll
+                      mv local64/bin-video/avdevice-58.dll ${{ env.windows-build-folder }}/avdevice-58.dll
+                      mv local64/bin-video/avfilter-7.dll ${{ env.windows-build-folder }}/avfilter-7.dll
+                      mv local64/bin-video/avformat-58.dll ${{ env.windows-build-folder }}/avformat-58.dll
+                      mv local64/bin-video/avutil-56.dll ${{ env.windows-build-folder }}/avutil-56.dll
+                      mv local64/bin-video/postproc-56.dll ${{ env.windows-build-folder }}/postproc-56.dll
+                      mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
+                      mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
 
-                      # tar and uplaod
+                      # tar and upload
                       tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
                       aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
                   else
