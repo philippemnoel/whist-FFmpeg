@@ -24,10 +24,10 @@ jobs:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
                       os: windows-2016
-                    - name: "Build and Publish Fractal FFmpeg on macOS"
-                      os: macos-10.14 # Xcode and Homebrew preinstalled
-                    - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-                      os: ubuntu-18.04
+                    # - name: "Build and Publish Fractal FFmpeg on macOS"
+                    #  os: macos-10.14 # Xcode and Homebrew preinstalled
+                    # - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
+                    #  os: ubuntu-18.04
 
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
@@ -110,6 +110,12 @@ jobs:
             ############################# LINUX UBUNTU STEPS END ##############################
 
             ################################ WINDOWS STEPS START ##############################
+
+            - name: On Windows, ensure cl is accessible
+              if: runner.os == 'Windows'
+              shell: cmd
+              run: |
+                call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
             - name: On Windows, Install CUDA
               if: runner.os == 'Windows'
