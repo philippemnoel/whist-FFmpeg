@@ -87,10 +87,12 @@ $CUDA_PATCH=$Matches.patch
 ## ---------------------------
 
 # get cl.exe location
-$dir = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC"
-$msvc_version = Get-ChildItem -Path $dir -Name
-Get-ChildItem -Path "$($dir)\$($msvc_version)\bin" -Name
-$cl_location = "$($dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
+$mvs_dir = "C:\Program Files (x86)\Microsoft Visual Studio"
+$mvs_year = Get-ChildItem -Path $mvs_dir -Name | Select-Object -first 1
+$mvs_edition = Get-ChildItem -Path "$($mvs_dir)\$($mvs_year)" -Name | Select-Object -last 1
+$msvc_dir = "$($mvs_dir)\$($mvs_year)\$($mvs_edition)\VC\Tools\MSVC"
+$msvc_version = Get-ChildItem -Path $msvc_dir -Name
+$cl_location = "$($msvc_dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
 
 # Exit if VS compiler version isn't supported by cuda version
 # We get the compiler version by checking installed visual c++ versions
