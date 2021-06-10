@@ -274,6 +274,7 @@ jobs:
                   libavutil/attributes.h \
                   libavutil/audio_fifo.h \
                   libavutil/avassert.h \
+                  libavutil/avconfig.h \
                   libavutil/avstring.h \
                   libavutil/avutil.h \
                   libavutil/base64.h \
