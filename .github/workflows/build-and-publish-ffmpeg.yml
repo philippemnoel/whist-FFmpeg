@@ -111,13 +111,6 @@ jobs:
 
             ################################ WINDOWS STEPS START ##############################
 
-            - name: On Windows, ensure cl is accessible
-              if: runner.os == 'Windows'
-              shell: cmd
-              run: |
-                dir "C:\Program Files (x86)\Microsoft Visual Studio\2017\"
-                call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
             - name: On Windows, Install CUDA
               if: runner.os == 'Windows'
               env:
@@ -126,7 +119,8 @@ jobs:
               shell: powershell
               working-directory: C:\media-autobuild_suite
               run: |
-                  .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
+                & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+                .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
                   if ($?) {
                     # Set paths for subsequent steps, using $env:CUDA_PATH
                     echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
