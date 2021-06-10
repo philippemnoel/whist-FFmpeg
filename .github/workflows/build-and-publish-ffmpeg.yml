@@ -25,9 +25,9 @@ jobs:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
                       os: windows-2016
                     - name: "Build and Publish Fractal FFmpeg on macOS"
-                     os: macos-10.14 # Xcode and Homebrew preinstalled
+                      os: macos-10.14 # Xcode and Homebrew preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-                     os: ubuntu-18.04
+                      os: ubuntu-18.04
 
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
