@@ -87,7 +87,7 @@ $CUDA_PATCH=$Matches.patch
 ## ---------------------------
 
 # get cl.exe location
-$dir = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC"
+$dir = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC"
 $msvc_version = Get-ChildItem -Path $dir -Name
 Get-ChildItem -Path "$($dir)\$($msvc_version)\bin" -Name
 $cl_location = "$($dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
