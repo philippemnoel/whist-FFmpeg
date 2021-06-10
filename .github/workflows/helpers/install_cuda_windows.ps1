@@ -86,10 +86,16 @@ $CUDA_PATCH=$Matches.patch
 ## Visual studio support check
 ## ---------------------------
 
+# get cl.exe location
+$dir = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC"
+$msvc_version = Get-ChildItem -Path $dir -Name
+Get-ChildItem -Path "$($dir)\$($msvc_version)\bin" -Name
+$cl_location = "$($dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
+
 # Exit if VS compiler version isn't supported by cuda version
 # We get the compiler version by checking installed visual c++ versions
 "_MSC_VER" | Out-File -FilePath mscver.c
-$MSC_VER = cl /nologo /EP mscver.c | Select-Object -last 1
+$MSC_VER = & $cl_location /nologo /EP mscver.c | Select-Object -last 1
 Write-Output "Found Microsoft C++ version $($MSC_VER)"
 $CUDA_MAJOR_MINOR = $CUDA_MAJOR + "." + $CUDA_MINOR
 if ($MSC_VER.length -ge 4) {
