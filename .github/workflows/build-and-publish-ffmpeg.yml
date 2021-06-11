@@ -216,7 +216,7 @@ jobs:
                   fi
 
             - name: Tar FFmpeg headers and Upload to AWS S3
-              if: runner.os == 'Linux' # Only run once, as headers are identical on every OS
+              if: runner.os == 'macOS' # Only run once, as headers are identical on every OS
               shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
