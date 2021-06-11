@@ -100,7 +100,7 @@ jobs:
 
             ############################# LINUX UBUNTU STEPS START ############################
 
-            - name: Build FFmpeg on Linux Ubuntu 18.04 through Docker
+            - name: Build FFmpeg on Linux Ubuntu through Docker
               if: runner.os == 'Linux'
               shell: bash
               run: |
