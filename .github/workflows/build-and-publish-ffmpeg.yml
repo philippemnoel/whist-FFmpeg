@@ -230,12 +230,16 @@ jobs:
                   libavcodec/avcodec.h \
                   libavcodec/avdct.h \
                   libavcodec/avfft.h \
+                  libavcodec/bsf.h \
+                  libavcodec/codec_id.h \
+                  libavcodec/codec_par.h \
                   libavcodec/d3d11va.h \
                   libavcodec/dirac.h \
                   libavcodec/dv_profile.h \
                   libavcodec/dxva2.h \
                   libavcodec/jni.h \
                   libavcodec/mediacodec.h \
+                  libavcodec/packet.h \
                   libavcodec/qsv.h \
                   libavcodec/vaapi.h \
                   libavcodec/vdpau.h \
