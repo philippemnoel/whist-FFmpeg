@@ -27,7 +27,7 @@ jobs:
                     - name: "Build and Publish Fractal FFmpeg on macOS"
                       os: macos-10.14 # Xcode and Homebrew preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
-                      os: ubuntu-18.04
+                      os: ubuntu-20.04
 
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
@@ -105,7 +105,7 @@ jobs:
               shell: bash
               run: |
                   # build
-                  ./docker-build.sh 18
+                  ./docker-build.sh 20
 
             ############################# LINUX UBUNTU STEPS END ##############################
 
