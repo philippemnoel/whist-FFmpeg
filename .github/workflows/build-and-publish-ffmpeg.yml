@@ -195,14 +195,14 @@ jobs:
                       # mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
                       # mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
                       mkdir ${{ env.windows-build-folder }}
-                      mv local64/bin-video/libavcodec.lib ${{ env.windows-build-folder }}/libavcodec.lib
-                      mv local64/bin-video/libavdevice.lib ${{ env.windows-build-folder }}/libavdevice.lib
-                      mv local64/bin-video/libavfilter.lib ${{ env.windows-build-folder }}/libavfilter.lib
-                      mv local64/bin-video/libavformat.lib ${{ env.windows-build-folder }}/libavformat.lib
-                      mv local64/bin-video/libavutil.lib ${{ env.windows-build-folder }}/libavutil.lib
-                      mv local64/bin-video/libpostproc.lib ${{ env.windows-build-folder }}/libpostproc.lib
-                      mv local64/bin-video/libswresample.lib ${{ env.windows-build-folder }}/libswresample.lib
-                      mv local64/bin-video/libswscale.lib ${{ env.windows-build-folder }}/libswscale.lib
+                      mv local64/bin-video/avcodec.lib ${{ env.windows-build-folder }}/avcodec.lib
+                      mv local64/bin-video/avdevice.lib ${{ env.windows-build-folder }}/avdevice.lib
+                      mv local64/bin-video/avfilter.lib ${{ env.windows-build-folder }}/avfilter.lib
+                      mv local64/bin-video/avformat.lib ${{ env.windows-build-folder }}/avformat.lib
+                      mv local64/bin-video/avutil.lib ${{ env.windows-build-folder }}/avutil.lib
+                      mv local64/bin-video/postproc.lib ${{ env.windows-build-folder }}/postproc.lib
+                      mv local64/bin-video/swresample.lib ${{ env.windows-build-folder }}/swresample.lib
+                      mv local64/bin-video/swscale.lib ${{ env.windows-build-folder }}/swscale.lib
 
                       # tar and upload
                       tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
