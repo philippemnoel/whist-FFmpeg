@@ -22,10 +22,10 @@ jobs:
         strategy:
             matrix:
                 config:
-                    - name: "Build and Publish Fractal FFmpeg on Windows"
-                      os: windows-2016
-                    - name: "Build and Publish Fractal FFmpeg on macOS"
-                      os: macos-10.14 # Xcode and Homebrew preinstalled
+                    # - name: "Build and Publish Fractal FFmpeg on Windows"
+                    #   os: windows-2016
+                    # - name: "Build and Publish Fractal FFmpeg on macOS"
+                    #   os: macos-10.14 # Xcode and Homebrew preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
                       os: ubuntu-20.04
 
