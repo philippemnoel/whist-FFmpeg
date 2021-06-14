@@ -8,8 +8,7 @@ name: "Build & Publish Fractal FFmpeg"
 on:
     push:
         branches:
-          - master
-          - phil/ci
+          - main
         paths-ignore:
           - "README.md"
     workflow_dispatch:

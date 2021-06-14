@@ -1,4 +1,5 @@
 #!/bin/bash
+
 logFile=$(cygpath -u "$1" 2> /dev/null)
 command=$2
 shift 2

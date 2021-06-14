@@ -11,6 +11,7 @@ $CUDA_KNOWN_URLS = @{
     "9.1.85" = "http://developer.nvidia.com/compute/cuda/9.1/Prod/network_installers/cuda_9.1.85_win10_network";
     "9.2.148" = "http://developer.nvidia.com/compute/cuda/9.2/Prod2/network_installers2/cuda_9.2.148_win10_network";
     "10.0.130" = "http://developer.nvidia.com/compute/cuda/10.0/Prod/network_installers/cuda_10.0.130_win10_network";
+    "11.3.1" = "https://developer.download.nvidia.com/compute/cuda/11.3.1/network_installers/cuda_11.3.1_win10_network";
 }
 
 # CUDA version <-> max/min msc versions supported
@@ -109,11 +110,11 @@ if ($MSC_VER.length -ge 4) {
 $CUDA_PACKAGES = ""
 
 # for CUDA >= 11 cudart is a required package.
-# if([version]$CUDA_VERSION_FULL -ge [version]"11.0") {
-#     if(-not $CUDA_PACKAGES_IN -contains "cudart") {
-#         $CUDA_PACKAGES_IN += 'cudart'
-#     }
-# }
+if([version]$CUDA_VERSION_FULL -ge [version]"11.0") {
+    if(-not $CUDA_PACKAGES_IN -contains "cudart") {
+        $CUDA_PACKAGES_IN += 'cudart'
+    }
+}
 
 Foreach ($package in $CUDA_PACKAGES_IN) {
     # Make sure the correct package name is used for nvcc.
@@ -126,9 +127,11 @@ Foreach ($package in $CUDA_PACKAGES_IN) {
 
 }
 echo "$($CUDA_PACKAGES)"
+
 ## -----------------
 ## Prepare download
 ## -----------------
+
 # Select the download link if known, otherwise have a guess.
 $CUDA_REPO_PKG_REMOTE=""
 if($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){

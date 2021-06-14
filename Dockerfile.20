@@ -18,12 +18,15 @@ RUN apt-get -y install libssl-dev cmake
 
 # Install Intel gmm, needed for libmfx (QSV)
 RUN git clone https://github.com/intel/gmmlib && cd gmmlib && mkdir build && cd build \
-    && cmake .. && make -j6 && make install
+    && cmake .. \
+    && make -j6 \
+    && make install
 
 # Install libVA, needed for VAAPI
 RUN apt-get -y install libdrm-dev
 RUN git clone https://github.com/intel/libva && cd libva && ./autogen.sh \
-    && make -j6 && make install
+    && make -j6 \
+    && make install
 
 # Install PCI Access
 RUN apt-get -y install libpciaccess-dev
@@ -42,8 +45,10 @@ RUN apt-get -y install libx264-dev libx265-dev mesa-common-dev nvidia-cuda-toolk
 
 # Install Nvidia Codec Headers
 RUN env
-RUN git clone https://github.com/ffmpeg/nv-codec-headers && cd nv-codec-headers \
-    && make && make install
+RUN git clone https://github.com/ffmpeg/nv-codec-headers \
+    && cd nv-codec-headers \
+    && make \
+    && make install
 
 # Clean installs
 RUN apt autoremove
