@@ -229,7 +229,7 @@ jobs:
               shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
-                  mkdir ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+                  mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
 
                   # move select header files over to tar, only the ones needed
                   # libavcodec
