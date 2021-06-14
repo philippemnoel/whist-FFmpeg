@@ -195,7 +195,6 @@ jobs:
                       mv local64/bin-video/postproc-55.dll ${{ env.windows-build-folder }}/postproc-55.dll
                       mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
                       mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
-                      mkdir ${{ env.windows-build-folder }}
                       mv local64/bin-video/avcodec.lib ${{ env.windows-build-folder }}/avcodec.lib
                       mv local64/bin-video/avdevice.lib ${{ env.windows-build-folder }}/avdevice.lib
                       mv local64/bin-video/avfilter.lib ${{ env.windows-build-folder }}/avfilter.lib
@@ -230,7 +229,7 @@ jobs:
               shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
-                  mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+                  mkdir ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
 
                   # move select header files over to tar, only the ones needed
                   # libavcodec
