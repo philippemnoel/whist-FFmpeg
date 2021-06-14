@@ -60,8 +60,8 @@ void  free(void *ptr);
 #endif /* MALLOC_PREFIX */
 
 #include "mem_internal.h"
-// Modified by fractal: we align to pagesize instead to integrate better with
-// Metal
+
+// Modified by fractal: we align to pagesize instead to integrate better with Metal and SDL
 // Old macro definition:
 // #define ALIGN (HAVE_AVX512 ? 64 : (HAVE_AVX ? 32 : 16))
 #define ALIGN sysconf(_SC_PAGESIZE)
