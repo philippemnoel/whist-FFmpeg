@@ -43,6 +43,8 @@ This fork was originally created to add 0RGB32 Cuda resizing to the `scale_cuda`
 
 We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
 
+We have modified the data alignment in `libavutil/mem.c` to force `av_malloc` to align with system pagesize, instead of a fixed number like 16/32. This allows us to shave one memcpy when integrating with SDL's rendering system under Metal on macOS.
+
 ## Building
 
 ### Windows
