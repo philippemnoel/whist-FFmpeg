@@ -77,8 +77,8 @@ $CUDA_FIRSTPATCH = $CUDA_PATCH.SubString(0, 1)
 
 # get cl.exe location
 $mvs_dir = "C:\Program Files (x86)\Microsoft Visual Studio"
-$mvs_year = Get-ChildItem -Path $mvs_dir -Name | Select-Object -first 1
-$mvs_edition = Get-ChildItem -Path "$($mvs_dir)\$($mvs_year)" -Name | Select-Object -last 1
+$mvs_year = Get-ChildItem -Path $mvs_dir -Name | Select-Object -First 1
+$mvs_edition = Get-ChildItem -Path "$($mvs_dir)\$($mvs_year)" -Name | Select-Object -Last 1
 $msvc_dir = "$($mvs_dir)\$($mvs_year)\$($mvs_edition)\VC\Tools\MSVC"
 $msvc_version = Get-ChildItem -Path $msvc_dir -Name
 $cl_location = "$($msvc_dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
@@ -86,7 +86,7 @@ $cl_location = "$($msvc_dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
 # Exit if VS compiler version isn't supported by cuda version
 # We get the compiler version by checking installed visual c++ versions
 "_MSC_VER" | Out-File -FilePath mscver.c
-$MSC_VER = & $cl_location /nologo /EP mscver.c | Select-Object -last 1
+$MSC_VER = & $cl_location /nologo /EP mscver.c | Select-Object -Last 1
 Write-Output "Found Microsoft C++ version $($MSC_VER)"
 $CUDA_MAJOR_MINOR = $CUDA_MAJOR + "." + $CUDA_MINOR
 if ($MSC_VER.length -ge 4) {
