@@ -3,7 +3,7 @@
 ## -------------------
 
 # Dictionary of known cuda versions and their download URLS, which do not follow a consistent pattern :(
-# We only hardcode the inconsistent ones, i.e. before 10.1.105 and after 11.3.1
+# We only hardcode the inconsistent ones, i.e. before 10.1.105
 $CUDA_KNOWN_URLS = @{
     "8.0.44" = "http://developer.nvidia.com/compute/cuda/8.0/Prod/network_installers/cuda_8.0.44_win10_network-exe";
     "8.0.61" = "http://developer.nvidia.com/compute/cuda/8.0/Prod2/network_installers/cuda_8.0.61_win10_network-exe";
@@ -11,7 +11,6 @@ $CUDA_KNOWN_URLS = @{
     "9.1.85" = "http://developer.nvidia.com/compute/cuda/9.1/Prod/network_installers/cuda_9.1.85_win10_network";
     "9.2.148" = "http://developer.nvidia.com/compute/cuda/9.2/Prod2/network_installers2/cuda_9.2.148_win10_network";
     "10.0.130" = "http://developer.nvidia.com/compute/cuda/10.0/Prod/network_installers/cuda_10.0.130_win10_network";
-    "11.3.1" = "https://developer.download.nvidia.com/compute/cuda/11.3.1/network_installers/cuda_11.3.1_win10_network.exe";
 }
 
 # CUDA version <-> max/min msc versions supported
