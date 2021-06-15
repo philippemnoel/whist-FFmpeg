@@ -523,6 +523,7 @@ static int scalecuda_resize(AVFilterContext *ctx,
                            out->data[1], out->width / 2, out->height / 2, out->linesize[1],
                            2, 16);
         break;
+    case AV_PIX_FMT_0RGB32:
     case AV_PIX_FMT_0BGR32:
         call_resize_kernel(ctx, s->cu_func_uchar4, 4,
                            in->data[0], in->width, in->height, in->linesize[0],
