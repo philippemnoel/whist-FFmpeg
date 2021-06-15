@@ -58,14 +58,7 @@ To build FFmpeg on macOS, first install Homebrew and the FFmpeg dependencies via
 
 Then, run `./configure` with the desired flags. See `build-and-publish.yml` for the full list of flags used in production.
 
-We have modified the data alignment in `libavutil/mem.c` to force `av_malloc` to align with system pagesize, instead of a fixed number like 16/32. This allows us to shave one memcpy when integrating with SDL's rendering system under Metal on macOS.
-
-## Building
-
-After every push to `main`, shared FFmpeg libraries are built and published to AWS S3, from which 
-
-
-which will be deployed automatically during the next `fractal/fractal` update. **Only stable changes should be deployed to `main`.**
+To customize the build, run `./configure --help` or read `configure` to see what flags are available. Finally, run `make`. The libraries will be in the `libavcodec`, `libavdevice`, etc. folders.
 
 ### Linux Ubuntu 20.04 (via Docker)
 
