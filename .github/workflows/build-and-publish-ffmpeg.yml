@@ -1,21 +1,21 @@
-# workflows/build-and-publish.yml
+# workflows/build-and-publish-ffmpeg.yml
 #
 # Build & Publish Fractal FFmpeg
-# Build and publish the internal Fractal version of FFmpeg.
+# Build and publish the internal Fractal version of FFmpeg by uploading compiled libs to AWS S3.
 
 name: "Build & Publish Fractal FFmpeg"
 
-
-
-## add failure and testing, and will need to do the same for SDL
-
 on:
+    pull_request:
+        branches:
+            - main
+        paths-ignore:
+            - README.md
     push:
         branches:
-          - main
-          - phil/ci
+            - main
         paths-ignore:
-          - "README.md"
+            - README.md
     workflow_dispatch:
 
 jobs:
@@ -27,12 +27,13 @@ jobs:
             matrix:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
-                      os: windows-2016
+                      os: windows-2016 # Same OS as Windows 10
                     - name: "Build and Publish Fractal FFmpeg on macOS"
-                      os: macos-10.14 # Xcode and Homebrew preinstalled
+                      os: macos-10.14 # Xcode and Homebrew come preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
                       os: ubuntu-20.04
 
+        # Environment variables for the deployment
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
             windows-build-folder: Windows
@@ -46,12 +47,14 @@ jobs:
             s3-bucket-uri: s3://fractal-protocol-shared-libs
 
         steps:
+            ################################# CONFIG STEPS START ###############################
+
             - name: On macOS and Linux Ubuntu, Checkout this Git Repository Directly
               if: runner.os == 'macOS' || runner.os == 'Linux'
               uses: actions/checkout@v2
 
-            # media-autobuild_suite needs to be in the C:\ drive, as it is very finicky with paths
-            - name: On Windows, Git Clone fractal/FFmpeg and fractal/media-autobuild-suite (FFmpeg Windows Compilation Helper Tools) to C:\
+            # media-autobuild_suite needs to be directly in the C:\ drive, as it is very finicky with paths
+            - name: On Windows, Git Clone fractal/FFmpeg and fractal/media-autobuild_suite (FFmpeg Windows Compilation Helper Tools) to C:\
               if: runner.os == 'Windows'
               shell: cmd
               run: |
@@ -61,6 +64,7 @@ jobs:
                   REM then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
                   git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
+            # For uploading the compiled libs to AWS S3
             - name: Configure AWS S3 CLI
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -68,6 +72,7 @@ jobs:
                   aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
                   aws-region: ${{ env.s3-bucket-region }}
 
+            ###################################################################################
             ################################# MACOS STEPS START ###############################
 
             - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
@@ -86,53 +91,62 @@ jobs:
                   automake fdk-aac git lame libass libtool libvorbis libvpx \
                   opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
-            # We disable commandline programs and SDL2 since we have our own SDL2 static build
-            # macOS hardware acceleration libraries (Videotoolbox, Audiotoolbox) are enabled by default
-            - name: On macOs, Configure and Make FFmpeg # only configure the minimum required flags for the Fractal protocol
+            # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
+            # we only configure the minimum required flags for the Fractal protocol
+            - name: On macOs, Configure and Make FFmpeg
               if: runner.os == 'macOS'
               shell: bash
               run: |
                   ./configure \
-                  --prefix=@loader_path --libdir=@loader_path \
-                  --enable-gpl --enable-nonfree --enable-version3 \
+                  --prefix=@loader_path \
+                  --libdir=@loader_path \
+                  --enable-gpl \
+                  --enable-nonfree \
+                  --enable-version3 \
                   --extra-cflags=-O3 \
-                  --disable-programs --disable-doc --disable-debug --disable-sdl2 \
-                  --enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
-                  --enable-videotoolbox --enable-audiotoolbox --enable-pthreads \
-                  --disable-static --enable-shared && make
+                  --disable-programs \
+                  --disable-doc \
+                  --disable-debug \
+                  --disable-sdl2 \
+                  --enable-opengl \
+                  --enable-libfdk-aac \
+                  --enable-libx264 \
+                  --enable-libx265 \
+                  --enable-videotoolbox \
+                  --enable-audiotoolbox \
+                  --enable-pthreads \
+                  --disable-static \
+                  --enable-shared \
+                  && make
 
-            ################################# MACOS STEPS END #################################
-
+            ###################################################################################
             ############################# LINUX UBUNTU STEPS START ############################
 
             - name: Build FFmpeg on Linux Ubuntu through Docker
               if: runner.os == 'Linux'
               shell: bash
-              run: |
-                  # build
-                  ./docker-build.sh 20
+              run: ./docker-build.sh 20
 
-            ############################# LINUX UBUNTU STEPS END ##############################
-
+            ###################################################################################
             ################################ WINDOWS STEPS START ##############################
 
             - name: On Windows, Install CUDA
               if: runner.os == 'Windows'
+              working-directory: C:\media-autobuild_suite
+              shell: powershell
               env:
                   visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
-                  cuda: "11.0.167" # Imported from env in the .ps1 script
-              shell: powershell
-              working-directory: C:\media-autobuild_suite
+                  cuda: "11.3.1" # Imported from env in the .ps1 script
               run: |
-                & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-                .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
-                  if ($?) {
-                    # Set paths for subsequent steps, using $env:CUDA_PATH
-                    echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
-                    echo "CUDA_PATH=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                    echo "$env:CUDA_PATH_VX_Y=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                    echo "$env:CUDA_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-                  }
+                  & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+                  .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
+                    if ($?) {
+                      # Set paths for subsequent steps, using $env:CUDA_PATH
+                      echo "Adding CUDA to CUDA_PATH, CUDA_PATH_X_Y and PATH"
+                      echo "CUDA_PATH=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                      echo "$env:CUDA_PATH_VX_Y=$env:CUDA_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                      echo "$env:CUDA_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                    }
 
             - name: On Windows, Verify that NVCC is Installed
               if: runner.os == 'Windows'
@@ -145,8 +159,8 @@ jobs:
 
             - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
               if: runner.os == 'Windows'
-              shell: bash
               working-directory: C:\media-autobuild_suite
+              shell: bash
               run: |
                   cp \
                   build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
@@ -163,9 +177,12 @@ jobs:
               shell: cmd
               run: .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
 
-            ################################ WINDOWS STEPS END ################################
+            ###################################################################################
+            ################################# PUBLISH STEPS START ##############################
 
-            - name: Tar FFmpeg Libs and Upload to AWS S3
+            # Only publish to AWS S3 on Push events (code merged into `main`), PRs only build to test
+            - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
+              if: ${{ github.event_name == 'push' }}
               shell: bash
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
@@ -179,14 +196,6 @@ jobs:
                   elif [ "$RUNNER_OS" == "Windows" ]; then
                       # cd to the right directory
                       cd /c/media-autobuild_suite
-
-                      echo "==="
-                      ls
-                      echo "==="
-                      ls local64
-                      echo "==="
-                      ls local64/bin-video
-                      echo "==="
 
                       # create protocol-compliant lib folder and rename & move libs over
                       mkdir ${{ env.windows-build-folder }}
@@ -228,14 +237,17 @@ jobs:
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
                   fi
 
-            - name: Tar FFmpeg headers and Upload to AWS S3
-              if: runner.os == 'macOS' # Only run once, as headers are identical on every OS
+            # Only run once, as headers are identical on every OS, we run on macOS to generate version headers, which
+            # don't generate properly on Linux
+            - name: Tar FFmpeg headers and Upload to AWS S3 (Only on Push Events)
+              if: ${{ github.event_name == 'push' }} && runner.os == 'macOS'
               shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
                   mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
 
                   # move select header files over to tar, only the ones needed
+
                   # libavcodec
                   mv \
                   libavcodec/ac3_parser.h \
@@ -392,15 +404,25 @@ jobs:
                   tar -zcvf ${{ env.headers-tar-name }} include
                   aws s3 cp ${{ env.headers-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.headers-tar-name }}
 
+            ###################################################################################
+
+            - name: Notify Slack on Workflow Error (Only on Push Events)
+              if: ${{ github.event_name == 'push' }} && failure()
+              shell: bash
+              run: |
+                  curl -X POST \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy FFmpeg libraries to AWS S3, investigate immediately :rotating_light:\", \"icon_emoji\": \":fractal:\"}" \
+                  ${{ secrets.SLACK_HOOKS_ENDPOINT }}
+
     notify-slack:
         name: Notify Slack
         needs: [build-and-publish-fractal-ffmpeg]
-        if: success()
+        if: ${{ github.event_name == 'push' }} && success()
         runs-on: ubuntu-20.04
 
         steps:
             - name: Notify Slack
               run: |
                   curl -X POST \
-                  --data-urlencode "payload={\"channel\": \"#alerts\", \"username\": \"Fractal Bot\", \"text\": \"Fractal FFmpeg Shared Build Deployed to Production via Upload to AWS S3.\", \"icon_emoji\": \":fractal:\"}" \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal FFmpeg Libraries Deployed to Production via Upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
                   ${{ secrets.SLACK_HOOKS_ENDPOINT }}
