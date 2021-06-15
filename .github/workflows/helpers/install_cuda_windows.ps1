@@ -134,6 +134,7 @@ $CUDA_REPO_PKG_REMOTE=""
 if ($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
     # we hardcoded the URL
     $CUDA_REPO_PKG_REMOTE=$CUDA_KNOWN_URLS[$CUDA_VERSION_FULL]
+    $CUDA_EXE = "cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
 } else {
     # "Guess" the URL
     $CUDA_URL_START = ""
@@ -150,7 +151,6 @@ if ($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
     } else {
 	$CUDA_URL_VERSION = "$($CUDA_MAJOR).$($CUDA_MINOR).$($CUDA_FIRSTPATCH)"
     }
-    $CUDA_EXE = ""
     if ([version]$CUDA_VERSION_FULL -lt [version]"11.0.0") {
 	$CUDA_EXE = "cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
     } else {
