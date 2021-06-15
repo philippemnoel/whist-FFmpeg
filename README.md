@@ -17,6 +17,7 @@ git remote add upstream https://github.com/FFmpeg/FFmpeg
 ```
 git remote set-url --push upstream DISABLE
 ```
+
 After this, you should be able to list your remotes with `git remote -v` if you ever need to debug.
 
 Since FFmpeg is a large and active project, we will very often want to work with the latest upstream code; meanwhile, we need to make sure that our own repository has a sane commit history -- we cannot simply periodically merge the latest FFmpeg on top of our own modifications.
@@ -39,15 +40,25 @@ git push origin <current branch>
 
 ## Fractal Changelog
 
-This fork was originally created to add 0RGB32 Cuda resizing to the `scale_cuda` filter (so that we could replace `sw_scale` entirely in the Nvidia GPU), but this has since been taken care of upstream. Right now, there are no FFmpeg source modifications we have made.
+- Modify `av_malloc` to align data to system pagesize to conform with macOS' Metal API, to avoid unnecessary memory copies from CPU to GPU between video decoding and video rendering with SDL
 
-We have also added Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04. 
+- Created GitHub Actions workflows, `build-and-test-ffmpeg.yml` and `build-and-publish-ffmpeg.yml` to build, test and publish on Windows, macOS and Linux Ubuntu
+
+- Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
+
+
+
+
+
 
 We have modified the data alignment in `libavutil/mem.c` to force `av_malloc` to align with system pagesize, instead of a fixed number like 16/32. This allows us to shave one memcpy when integrating with SDL's rendering system under Metal on macOS.
 
 ## Building
 
-After every push to `main`, shared FFmpeg libraries will be built and published to AWS S3, which will be deployed automatically during the next `fractal/fractal` update. **Only stable changes should be deployed to `main`.**
+After every push to `main`, shared FFmpeg libraries are built and published to AWS S3, from which 
+
+
+which will be deployed automatically during the next `fractal/fractal` update. **Only stable changes should be deployed to `main`.**
 
 The workflow is in `.github/workflows/build-and-publish-ffmpeg.yml`. The instructions for building on local machines are essentially identical to the publishing workflow, so we describe both below and note any differences. 
 

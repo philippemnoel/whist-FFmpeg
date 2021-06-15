@@ -156,8 +156,7 @@ jobs:
               if: runner.os == 'Windows'
               working-directory: C:\media-autobuild_suite
               shell: cmd
-              run: |
-                .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
+              run: .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
 
             ################################ WINDOWS STEPS END ################################
 
@@ -165,13 +164,13 @@ jobs:
               shell: bash
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
-                        # create protocol-compliant lib folder and move libs over
-                        mkdir ${{ env.linux-build-folder }}
-                        mv docker-builds/* ${{ env.linux-build-folder }}/
+                      # create protocol-compliant lib folder and move libs over
+                      mkdir ${{ env.linux-build-folder }}
+                      mv docker-builds/* ${{ env.linux-build-folder }}/
 
-                        # tar and uplaod
-                        tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
-                        aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
+                      # tar and uplaod
+                      tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
+                      aws s3 cp ${{ env.linux-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.linux-tar-name }}
                   elif [ "$RUNNER_OS" == "Windows" ]; then
                       # cd to the right directory
                       cd /c/media-autobuild_suite
