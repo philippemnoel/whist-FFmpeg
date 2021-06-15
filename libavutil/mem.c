@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <stdatomic.h>
 #include <string.h>
+#include <unistd.h>
 #if HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -62,7 +63,7 @@ void  free(void *ptr);
 
 #include "mem_internal.h"
 
-// Modified by fractal: we align to pagesize instead to integrate better with Metal and SDL
+// Modified by Fractal: we align to pagesize instead to integrate better with Metal and SDL
 // Old macro definition:
 // #define ALIGN (HAVE_AVX512 ? 64 : (HAVE_AVX ? 32 : 16))
 #define ALIGN sysconf(_SC_PAGESIZE)

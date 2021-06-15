@@ -14,9 +14,9 @@
 --enable-nvenc
 --enable-schannel
 --enable-zlib
---enable-sdl2
+# --enable-sdl2
 --enable-ffnvcodec
---enable-nvdec
+#--enable-nvdec
 --enable-cuda-llvm
 
 # Common options
@@ -114,3 +114,5 @@
 --disable-doc 
 --disable-sdl2
 --enable-filter=scale_cuda
+--enable-shared
+--disable-static
