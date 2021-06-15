@@ -208,6 +208,7 @@ jobs:
                   else
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
+                      mv /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib ${{env.macos-build-folder }}/libfdk-aac.2.dylib
                       mv libavcodec/libavcodec.58.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
                       mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58.dylib
                       mv libavfilter/libavfilter.7.dylib ${{ env.macos-build-folder }}/libavfilter.7.dylib
