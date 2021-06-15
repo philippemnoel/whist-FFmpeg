@@ -178,7 +178,7 @@ jobs:
               run: .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
 
             ###################################################################################
-            ################################# PUBLISH STEPS START ##############################
+            ################################# PUBLISH STEPS START #############################
 
             # Only publish to AWS S3 on Push events (code merged into `main`), PRs only build to test
             - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
