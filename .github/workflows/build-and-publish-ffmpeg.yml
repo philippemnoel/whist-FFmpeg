@@ -136,7 +136,7 @@ jobs:
               shell: powershell
               env:
                   visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
-                  cuda: "11.0.167" # Imported from env in the .ps1 script
+                  cuda: "11.3.1" # Imported from env in the .ps1 script
               run: |
                   & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
                   .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1

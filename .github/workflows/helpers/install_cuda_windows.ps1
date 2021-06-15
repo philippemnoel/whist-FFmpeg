@@ -3,7 +3,7 @@
 ## -------------------
 
 # Dictionary of known cuda versions and their download URLS, which do not follow a consistent pattern :(
-# We only hardcode the inconsistent ones, i.e. before 10.1.105
+# We only hardcode the inconsistent ones, i.e. before 10.1.105 and after 11.3.1
 $CUDA_KNOWN_URLS = @{
     "8.0.44" = "http://developer.nvidia.com/compute/cuda/8.0/Prod/network_installers/cuda_8.0.44_win10_network-exe";
     "8.0.61" = "http://developer.nvidia.com/compute/cuda/8.0/Prod2/network_installers/cuda_8.0.61_win10_network-exe";
@@ -11,6 +11,7 @@ $CUDA_KNOWN_URLS = @{
     "9.1.85" = "http://developer.nvidia.com/compute/cuda/9.1/Prod/network_installers/cuda_9.1.85_win10_network";
     "9.2.148" = "http://developer.nvidia.com/compute/cuda/9.2/Prod2/network_installers2/cuda_9.2.148_win10_network";
     "10.0.130" = "http://developer.nvidia.com/compute/cuda/10.0/Prod/network_installers/cuda_10.0.130_win10_network";
+    "11.3.1" = "https://developer.download.nvidia.com/compute/cuda/11.3.1/network_installers/cuda_11.3.1_win10_network.exe";
 }
 
 # CUDA version <-> max/min msc versions supported
@@ -61,7 +62,7 @@ $CUDA_VERSION_FULL = $env:cuda
 # Make sure CUDA_VERSION_FULL is set and valid, otherwise error.
 # Validate CUDA version, extracting components via regex
 $cuda_ver_matched = $CUDA_VERSION_FULL -match "^(?<major>[1-9][0-9]*)\.(?<minor>[0-9]+)\.(?<patch>[0-9]+)$"
-if(-not $cuda_ver_matched){
+if (-not $cuda_ver_matched){
     Write-Output "Invalid CUDA version specified, <major>.<minor>.<patch> required. '$CUDA_VERSION_FULL'."
     exit 1
 }
@@ -114,9 +115,9 @@ $CUDA_PACKAGES = ""
 
 Foreach ($package in $CUDA_PACKAGES_IN) {
     # Make sure the correct package name is used for nvcc.
-    if($package -eq "nvcc" -and [version]$CUDA_VERSION_FULL -lt [version]"9.1"){
+    if ($package -eq "nvcc" -and [version]$CUDA_VERSION_FULL -lt [version]"9.1"){
         $package="compiler"
-    } elseif($package -eq "compiler" -and [version]$CUDA_VERSION_FULL -ge [version]"9.1") {
+    } elseif ($package -eq "compiler" -and [version]$CUDA_VERSION_FULL -ge [version]"9.1") {
         $package="nvcc"
     }
     $CUDA_PACKAGES += " $($package)_$($CUDA_MAJOR).$($CUDA_MINOR)"
@@ -130,7 +131,7 @@ echo "$($CUDA_PACKAGES)"
 
 # Select the download link if known, otherwise have a guess.
 $CUDA_REPO_PKG_REMOTE=""
-if($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
+if ($CUDA_KNOWN_URLS.containsKey($CUDA_VERSION_FULL)){
     # we hardcoded the URL
     $CUDA_REPO_PKG_REMOTE=$CUDA_KNOWN_URLS[$CUDA_VERSION_FULL]
 } else {
@@ -166,7 +167,7 @@ $CUDA_REPO_PKG_LOCAL=$CUDA_EXE
 # Get CUDA network installer
 Write-Output "Downloading CUDA Network Installer for $($CUDA_VERSION_FULL) from: $($CUDA_REPO_PKG_REMOTE)"
 Invoke-WebRequest $CUDA_REPO_PKG_REMOTE -OutFile $CUDA_REPO_PKG_LOCAL | Out-Null
-if(Test-Path -Path $CUDA_REPO_PKG_LOCAL){
+if (Test-Path -Path $CUDA_REPO_PKG_LOCAL){
     Write-Output "Downloading Complete"
 } else {
     Write-Output "Error: Failed to download $($CUDA_REPO_PKG_LOCAL) from $($CUDA_REPO_PKG_REMOTE)"
