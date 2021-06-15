@@ -419,7 +419,6 @@ jobs:
         needs: [build-and-publish-fractal-ffmpeg]
         if: ${{ github.event_name == 'push' }} && success()
         runs-on: ubuntu-20.04
-
         steps:
             - name: Notify Slack
               run: |
