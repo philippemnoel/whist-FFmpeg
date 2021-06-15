@@ -1,6 +1,8 @@
 Fractal README
 =============
 
+[![Build & Publish Fractal FFmpeg](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml/badge.svg)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml)
+
 This repository is Fractal's fork of FFmpeg, with a few modifications. We forked SDL so that we can control and optimize it for better integration with the Fractal streaming protocol.
 
 ## Fractal Changelog
