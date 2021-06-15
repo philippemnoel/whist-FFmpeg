@@ -5,6 +5,10 @@
 
 name: "Build & Publish Fractal FFmpeg"
 
+
+
+## add failure and testing, and will need to do the same for SDL
+
 on:
     push:
         branches:

@@ -1,7 +1,17 @@
 Fractal README
 =============
 
-This repository is Fractal's fork of FFmpeg, with a few modifications.
+This repository is Fractal's fork of FFmpeg, with a few modifications. We forked SDL so that we can control and optimize it for better integration with the Fractal streaming protocol.
+
+## Fractal Changelog
+
+- Modify `av_malloc` to align data to system pagesize to conform with macOS' Metal API, to avoid unnecessary memory copies from CPU to GPU between video decoding and video rendering with SDL
+
+- Created a GitHub Actions workflow, `build-and-publish-ffmpeg.yml` to build, test and publish on Windows, macOS and Linux Ubuntu
+
+- Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
+
+## Development
 
 Before building or modifying the code, you should pull the latest changes from the public [`FFmpeg/FFmpeg`](https://github.com/FFmpeg/FFmpeg) repository that this repository is forked from. To setup your repository, follow these steps: 
 
@@ -38,18 +48,15 @@ git rebase upstream/master
 git push origin <current branch>
 ```
 
-## Fractal Changelog
+## Building 
 
-- Modify `av_malloc` to align data to system pagesize to conform with macOS' Metal API, to avoid unnecessary memory copies from CPU to GPU between video decoding and video rendering with SDL
+To see building in action on all OSes, with the flags currently used in production, you can refer to `build-and-publish-ffmpeg.yml`.
 
-- Created GitHub Actions workflows, `build-and-test-ffmpeg.yml` and `build-and-publish-ffmpeg.yml` to build, test and publish on Windows, macOS and Linux Ubuntu
+### macOS
 
-- Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
+To build FFmpeg on macOS, first install Homebrew and the FFmpeg dependencies via `brew install x264 ...`. See `build-and-publish.yml` for the full list of dependencies to install.
 
-
-
-
-
+Then, run `./configure` with the desired flags. See `build-and-publish.yml` for the full list of flags used in production.
 
 We have modified the data alignment in `libavutil/mem.c` to force `av_malloc` to align with system pagesize, instead of a fixed number like 16/32. This allows us to shave one memcpy when integrating with SDL's rendering system under Metal on macOS.
 
@@ -60,42 +67,27 @@ After every push to `main`, shared FFmpeg libraries are built and published to A
 
 which will be deployed automatically during the next `fractal/fractal` update. **Only stable changes should be deployed to `main`.**
 
-The workflow is in `.github/workflows/build-and-publish-ffmpeg.yml`. The instructions for building on local machines are essentially identical to the publishing workflow, so we describe both below and note any differences. 
+### Linux Ubuntu 20.04 (via Docker)
 
-After FFmpeg has built libraries successfully, move them into the `fractal/protocol/lib/64/ffmpeg/$OS/` folder and edit `protocol/CMakeLists.txt` accordingly if version numbers have changed. In addition, move the header files for `libavcodec`, `libavdevice`, `libavfilter`, `libavformat`, `libavutil`, `libpostproc`, `libswresample`, and `libswscale` into `fractal/protocol/include/ffmpeg/`. Not all the header files are needed; see the YAML workflow script to see which ones protocol uses.
+To build FFmpeg targeting Linux Ubuntu 20.04 inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh 20.04`. Currently, only Ubuntu 20.04 is supported, via `Dockerfile.20`, for consistency with our infrastructure in `fractal/fractal`.
 
-### macOS
-
-To build FFmpeg on macOS, first install homebrew and the ffmpeg dependencies via
-```
-brew install \
-automake fdk-aac git lame libass libtool libvorbis libvpx \
-opus sdl shtool texi2html theora wget x264 x265 xvid nasm
-```
-
-Then, run `./configure` with the desired flags. The flags used in the build and publish workflow are
-```
-./configure \
---prefix=@loader-path --libdir=@loader-path \
---enable-gpl --enable-nonfree --enable-version3 \
---disable-programs --disable-doc --disable-debug --disable-sdl2 \
---enable-opengl --enable-libfdk-aac --enable-libx264 --enable-libx265 \
---enable-videotoolbox --enable-audiotoolbox --enable-pthreads \
---disable-static --enable-shared
-```
-To customize the build, run `./configure --help` or read `configure` to see what flags are available. Finally, run `make`. The libraries will be in the `libavcodec`, `libavdevice`, etc. folders.
-
-### Linux Ubuntu - Docker
-
-To build FFmpeg targeting Linux Ubuntu inside of a Docker container, install and setup `docker` on your machine, then run `./docker-build.sh X` where `X` is the version of Ubuntu you want to build it inside. Currently, versions 18, for Ubuntu 18.04, and 20, for Ubuntu 20.04, are implemented, created by Dockerfiles `Dockerfile.18` and `Dockerfile.20` respectively. The built dynamic libraries will appear in the `docker-builds` folder. The docker build script contains the flags we use when building on Linux, so if you want to build static libraries or enable/disable different components, you must modify `docker-build.sh`. As above, to see what flags are valid, run `./configure --help` or read the `configure` file.
+The built dynamic libraries will appear in the `docker-builds` folder. The Docker build script contains the flags we use when building on Linux, so if you want to build static libraries or enable/disable different components, you must modify `docker-build.sh`. As above, to see what flags are valid, run `./configure --help` or read the `configure` file.
 
 ### Windows
 
-We use Media Autobuild Suite to compile FFmpeg on Windows whose `media-autobuild_suite.bat` file is the equivalent of `./configure && make`. First, clone `https://github.com/fractal/media-autobuild_suite` into `C:\media-autobuild_suite` and `cd` there; our own fork uses our fork of FFmpeg rather than upstream FFmpeg. Then, copy all files except the `.ps1` script in `.github/workflows/helpers/` to the `build/` directory in Media Autobuild Suite. There should be no need to touch the `.sh` scripts. Configuration is done through `media-autobuild_suite.ini`, `ffmpeg_options.txt`, and `mpv_options.txt`. The `options.txt` files contain compile flags for their respective programs; feel free to comment/uncomment flags, and add new ones under the `Fractal-added options` heading. The `.ini` file contains Media Autobuild Suite options. The options in the `.ini` file are documented in `media-autobuild_suite.bat`; importantly, to build shared or static libraries, you MUST change `ffmpegB2` instead of changing the flags in `ffmpeg_options.txt`.
+We use Media Autobuild Suite to compile FFmpeg on Windows, whose `media-autobuild_suite.bat` file is the equivalent of `./configure && make` on Unix.
+
+First, clone `https://github.com/fractal/media-autobuild_suite` into `C:\media-autobuild_suite` and `cd` into the folder; our own fork uses our fork of FFmpeg rather than upstream FFmpeg. Then, copy all files except the `.ps1` script in this repository's `.github/workflows/helpers/` to the `build/` directory in `C:\media-autobuild_suite`. You should not need to touch the `.sh` scripts. Configuration is done through `media-autobuild_suite.ini`, `ffmpeg_options.txt`, and `mpv_options.txt`. The `options.txt` files contain compile flags for their respective programs. You should feel free to comment/uncomment flags, and add new ones under the `Fractal-added options` heading, to modify the build settings. Please only enable the minimum required flags, to keep libraries as small as possible. The `.ini` file contains Media Autobuild Suite options. The options in the `.ini` file are documented in `media-autobuild_suite.bat`. Importantly, to build shared or static libraries, you MUST change `ffmpegB2` instead of changing the flags in `ffmpeg_options.txt`.
 
 Then, make sure CUDA is installed. You can install the desired version of CUDA either through the Nvidia website or using the `install_cuda_windows.ps1` script in `.github/workflows/helpers/`. Before running the script, set `$env:cuda` to the desired version you want.
 
-Finally, run `media-autobuild_suite.bat`. The first build will take a while, probably at least an hour, because the batch file also needs to install a lot of packages via msys2. The shared libraries will be in `local64/bin-video` and static libraries will be in `local64/lib`.
+Finally, run `media-autobuild_suite.bat`. The first build will take a while, probably at least an hour, because the batch file also needs to install a lot of packages via `msys2`. The shared libraries will be in `local64/bin-video` and static libraries will be in `local64/lib`.
+
+## Publishing
+
+For every push to `main`, for instance when we pull the latest changes from upstream or if we make changes to FFmpeg and merge to `main`, the shared version of FFmpeg on Windows, macOS and Linux Ubuntu will be built and published to AWS S3, via the GitHub Actions workflow `.github/workflows/build-and-publish-ffmpeg.yml`, from where the Fractal protocol retrieves its libraries. The newly-uploaded FFmpeg libraries and headers will be automatically deployed with the next `fractal/fractal` update. Note that not all header files are needed; see the YAML workflow for which ones the Fractal Protocol uses. **Only stable changes should make it to `main`.** 
+
+See the Changelog above for the list of changes on top of the public version of FFmpeg that are incorporated in our internal Fractal version of FFmpeg.
 
 ---
 

@@ -16,7 +16,7 @@
 --enable-zlib
 # --enable-sdl2
 --enable-ffnvcodec
---enable-nvdec
+#--enable-nvdec
 --enable-cuda-llvm
 
 # Common options
