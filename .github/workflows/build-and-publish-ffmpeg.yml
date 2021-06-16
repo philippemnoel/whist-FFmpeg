@@ -100,6 +100,8 @@ jobs:
                   ./configure \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
+                  --extra-cflags=-O3 \
+                  --enable-rpath \
                   --enable-gpl \
                   --enable-nonfree \
                   --enable-version3 \

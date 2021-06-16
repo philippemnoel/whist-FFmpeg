@@ -116,3 +116,4 @@
 --enable-filter=scale_cuda
 --enable-shared
 --disable-static
+--enable-rpath
