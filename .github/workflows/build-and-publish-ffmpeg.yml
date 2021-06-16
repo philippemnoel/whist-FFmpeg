@@ -115,8 +115,6 @@ jobs:
                   --enable-videotoolbox \
                   --enable-audiotoolbox \
                   --enable-pthreads \
-                  --disable-static \
-                  --enable-shared \
                   && make
 
             ###################################################################################
@@ -199,14 +197,6 @@ jobs:
 
                       # create protocol-compliant lib folder and rename & move libs over
                       mkdir ${{ env.windows-build-folder }}
-                      mv local64/bin-video/avcodec-58.dll ${{ env.windows-build-folder }}/avcodec-58.dll
-                      mv local64/bin-video/avdevice-58.dll ${{ env.windows-build-folder }}/avdevice-58.dll
-                      mv local64/bin-video/avfilter-7.dll ${{ env.windows-build-folder }}/avfilter-7.dll
-                      mv local64/bin-video/avformat-58.dll ${{ env.windows-build-folder }}/avformat-58.dll
-                      mv local64/bin-video/avutil-56.dll ${{ env.windows-build-folder }}/avutil-56.dll
-                      mv local64/bin-video/postproc-55.dll ${{ env.windows-build-folder }}/postproc-55.dll
-                      mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
-                      mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
                       mv local64/bin-video/avcodec.lib ${{ env.windows-build-folder }}/avcodec.lib
                       mv local64/bin-video/avdevice.lib ${{ env.windows-build-folder }}/avdevice.lib
                       mv local64/bin-video/avfilter.lib ${{ env.windows-build-folder }}/avfilter.lib
@@ -222,15 +212,14 @@ jobs:
                   else
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
-                      mv /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib ${{env.macos-build-folder }}/libfdk-aac.2.dylib
-                      mv libavcodec/libavcodec.58.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
-                      mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58.dylib
-                      mv libavfilter/libavfilter.7.dylib ${{ env.macos-build-folder }}/libavfilter.7.dylib
-                      mv libavformat/libavformat.58.dylib ${{ env.macos-build-folder }}/libavformat.58.dylib
-                      mv libavutil/libavutil.56.dylib ${{ env.macos-build-folder }}/libavutil.56.dylib
-                      mv libpostproc/libpostproc.55.dylib ${{ env.macos-build-folder }}/libpostproc.55.dylib
-                      mv libswresample/libswresample.3.dylib ${{ env.macos-build-folder }}/libswresample.3.dylib
-                      mv libswscale/libswscale.5.dylib ${{ env.macos-build-folder }}/libswscale.5.dylib
+                      mv libavcodec/libavcodec.a ${{ env.macos-build-folder }}/libavcodec.a
+                      mv libavdevice/libavdevice.a ${{ env.macos-build-folder }}/libavdevice.a
+                      mv libavfilter/libavfilter.a ${{ env.macos-build-folder }}/libavfilter.a
+                      mv libavformat/libavformat.a ${{ env.macos-build-folder }}/libavformat.a
+                      mv libavutil/libavutil.a ${{ env.macos-build-folder }}/libavutil.a
+                      mv libpostproc/libpostproc.a ${{ env.macos-build-folder }}/libpostproc.a
+                      mv libswresample/libswresample.a ${{ env.macos-build-folder }}/libswresample.a
+                      mv libswscale/libswscale.a ${{ env.macos-build-folder }}/libswscale.a
 
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}

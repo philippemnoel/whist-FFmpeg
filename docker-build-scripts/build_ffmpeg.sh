@@ -27,8 +27,6 @@ cd FFmpeg
 --enable-libmfx \
 --enable-filter=frei0r \
 --enable-filter=scale_cuda \
---disable-static \
---enable-shared
 
 # Build FFmpeg and move static/shared libs
 make -j8 && rm -rf linux-build && mkdir linux-build

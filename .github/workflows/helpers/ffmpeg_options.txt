@@ -114,5 +114,3 @@
 --disable-doc 
 --disable-sdl2
 --enable-filter=scale_cuda
---enable-shared
---disable-static
