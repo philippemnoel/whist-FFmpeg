@@ -6,7 +6,6 @@ cd FFmpeg
 ./configure \
 --arch=x86_64 \
 --extra-cflags=-O3 \
---enable-rpath \
 --enable-gpl \
 --enable-nonfree \
 --enable-version3 \
