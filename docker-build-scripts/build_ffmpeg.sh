@@ -18,9 +18,6 @@ cd FFmpeg
 --enable-libfdk-aac \
 --enable-libx264 \
 --enable-libx265 \
---enable-libopencore-amrnb \
---enable-libopencore-amrwb \
---enable-libvo-amrwbenc \
 --enable-cuda-nvcc \
 --enable-nvenc \
 --enable-nvdec \
