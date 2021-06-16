@@ -35,11 +35,11 @@ jobs:
 
         # Environment variables for the deployment
         env:
-            windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
+            windows-tar-name: fractal-windows-ffmpeg-static-lib.tar.gz
             windows-build-folder: Windows
-            macos-tar-name: fractal-macos-ffmpeg-shared-lib.tar.gz
+            macos-tar-name: fractal-macos-ffmpeg-static-lib.tar.gz
             macos-build-folder: Darwin
-            linux-tar-name: fractal-linux-ffmpeg-shared-lib.tar.gz
+            linux-tar-name: fractal-linux-ffmpeg-static-lib.tar.gz
             linux-build-folder: Linux
             headers-tar-name: fractal-ffmpeg-headers.tar.gz
             headers-build-folder: include
