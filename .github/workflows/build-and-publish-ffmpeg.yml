@@ -232,6 +232,9 @@ jobs:
                       mv libswresample/libswresample.3.dylib ${{ env.macos-build-folder }}/libswresample.3.dylib
                       mv libswscale/libswscale.5.dylib ${{ env.macos-build-folder }}/libswscale.5.dylib
 
+                      # mark libfdk-aac.2.dylib as executable
+                      chmod +x ${{env.macos-build-folder }}/libfdk-aac.2.dylib
+
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
