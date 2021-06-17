@@ -232,13 +232,18 @@ jobs:
                       mv libswresample/libswresample.4.dylib ${{ env.macos-build-folder }}/libswresample.4.dylib
                       mv libswscale/libswscale.6.dylib ${{ env.macos-build-folder }}/libswscale.6.dylib
 
-                      # mark dependencies (fdk-aac, x264, x265) as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
-                      dependencies = "/usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib \
-                                      /usr/local/opt/x264/lib/libx264.161.dylib \
-                                      /usr/local/opt/x265/lib/libx265.199.dylib" 
-                      for DEPENDENCY in ${dependencies}
+                      # mark dependencies (fdk-aac, x264, x265, etc.) as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
+                      dependencies=(
+                        /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib
+                        /usr/local/opt/x264/lib/libx264.161.dylib
+                        /usr/local/opt/x265/lib/libx265.199.dylib
+                        /usr/local/opt/libxcb/lib/libxcb-*.0.dylib
+                        /usr/local/opt/xz/lib/liblzma.5.dylib
+                      )
+
+                      for DEPENDENCY in ${dependencies[*]}
                       do
-                        dylib = `basename $DEPENDENCY`
+                        dylib=`basename $DEPENDENCY`
                         mv $DEPENDENCY ${{ env.macos-build-folder }}/$dylib
                         chmod +x ${{ env.macos-build-folder }}/$dylib
                         for LIB in libavcodec.59.dylib libavdevice.59.dylib libavfilter.8.dylib libavformat.59.dylib
