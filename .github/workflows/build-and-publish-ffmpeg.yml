@@ -273,7 +273,10 @@ jobs:
                   libavcodec/mediacodec.h \
                   libavcodec/packet.h \
                   libavcodec/qsv.h \
-                  libavcodec/vaapi.h \
+                  libavcodec/vaapi_decode.h \
+                  libavcodec/vaapi_encode.h \
+                  libavcodec/vaapi_hevc.h \
+                  libavcodec/vaapi_vpp.h \
                   libavcodec/vdpau.h \
                   libavcodec/version.h \
                   libavcodec/videotoolbox.h \
