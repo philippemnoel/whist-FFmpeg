@@ -101,11 +101,9 @@ jobs:
                   --prefix=@loader_path \
                   --libdir=@loader_path \
                   --extra-cflags=-O3 \
-                  --enable-rpath \
                   --enable-gpl \
                   --enable-nonfree \
                   --enable-version3 \
-                  --extra-cflags=-O3 \
                   --disable-programs \
                   --disable-doc \
                   --disable-debug \
@@ -114,8 +112,6 @@ jobs:
                   --enable-libfdk-aac \
                   --enable-libx264 \
                   --enable-libx265 \
-                  --enable-videotoolbox \
-                  --enable-audiotoolbox \
                   --enable-pthreads \
                   --disable-static \
                   --enable-shared \
@@ -201,14 +197,14 @@ jobs:
 
                       # create protocol-compliant lib folder and rename & move libs over
                       mkdir ${{ env.windows-build-folder }}
-                      mv local64/bin-video/avcodec-58.dll ${{ env.windows-build-folder }}/avcodec-58.dll
-                      mv local64/bin-video/avdevice-58.dll ${{ env.windows-build-folder }}/avdevice-58.dll
-                      mv local64/bin-video/avfilter-7.dll ${{ env.windows-build-folder }}/avfilter-7.dll
-                      mv local64/bin-video/avformat-58.dll ${{ env.windows-build-folder }}/avformat-58.dll
-                      mv local64/bin-video/avutil-56.dll ${{ env.windows-build-folder }}/avutil-56.dll
-                      mv local64/bin-video/postproc-55.dll ${{ env.windows-build-folder }}/postproc-55.dll
-                      mv local64/bin-video/swresample-3.dll ${{ env.windows-build-folder }}/swresample-3.dll
-                      mv local64/bin-video/swscale-5.dll ${{ env.windows-build-folder }}/swscale-5.dll
+                      mv local64/bin-video/avcodec-59.dll ${{ env.windows-build-folder }}/avcodec-59.dll
+                      mv local64/bin-video/avdevice-59.dll ${{ env.windows-build-folder }}/avdevice-59.dll
+                      mv local64/bin-video/avfilter-8.dll ${{ env.windows-build-folder }}/avfilter-8.dll
+                      mv local64/bin-video/avformat-59.dll ${{ env.windows-build-folder }}/avformat-59.dll
+                      mv local64/bin-video/avutil-57.dll ${{ env.windows-build-folder }}/avutil-57.dll
+                      mv local64/bin-video/postproc-56.dll ${{ env.windows-build-folder }}/postproc-56.dll
+                      mv local64/bin-video/swresample-4.dll ${{ env.windows-build-folder }}/swresample-4.dll
+                      mv local64/bin-video/swscale-6.dll ${{ env.windows-build-folder }}/swscale-6.dll
                       mv local64/bin-video/avcodec.lib ${{ env.windows-build-folder }}/avcodec.lib
                       mv local64/bin-video/avdevice.lib ${{ env.windows-build-folder }}/avdevice.lib
                       mv local64/bin-video/avfilter.lib ${{ env.windows-build-folder }}/avfilter.lib
@@ -225,17 +221,21 @@ jobs:
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
                       mv /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib ${{env.macos-build-folder }}/libfdk-aac.2.dylib
-                      mv libavcodec/libavcodec.58.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
-                      mv libavdevice/libavdevice.58.dylib ${{ env.macos-build-folder }}/libavdevice.58.dylib
-                      mv libavfilter/libavfilter.7.dylib ${{ env.macos-build-folder }}/libavfilter.7.dylib
-                      mv libavformat/libavformat.58.dylib ${{ env.macos-build-folder }}/libavformat.58.dylib
-                      mv libavutil/libavutil.56.dylib ${{ env.macos-build-folder }}/libavutil.56.dylib
-                      mv libpostproc/libpostproc.55.dylib ${{ env.macos-build-folder }}/libpostproc.55.dylib
-                      mv libswresample/libswresample.3.dylib ${{ env.macos-build-folder }}/libswresample.3.dylib
-                      mv libswscale/libswscale.5.dylib ${{ env.macos-build-folder }}/libswscale.5.dylib
+                      mv libavcodec/libavcodec.59.dylib ${{ env.macos-build-folder }}/libavcodec.59.dylib
+                      mv libavdevice/libavdevice.59.dylib ${{ env.macos-build-folder }}/libavdevice.59.dylib
+                      mv libavfilter/libavfilter.8.dylib ${{ env.macos-build-folder }}/libavfilter.8.dylib
+                      mv libavformat/libavformat.59.dylib ${{ env.macos-build-folder }}/libavformat.59.dylib
+                      mv libavutil/libavutil.57.dylib ${{ env.macos-build-folder }}/libavutil.57.dylib
+                      mv libpostproc/libpostproc.56.dylib ${{ env.macos-build-folder }}/libpostproc.56.dylib
+                      mv libswresample/libswresample.4.dylib ${{ env.macos-build-folder }}/libswresample.4.dylib
+                      mv libswscale/libswscale.6.dylib ${{ env.macos-build-folder }}/libswscale.6.dylib
 
-                      # mark libfdk-aac.2.dylib as executable
+                      # mark libfdk-aac.2.dylib as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
                       chmod +x ${{env.macos-build-folder }}/libfdk-aac.2.dylib
+                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavcodec.59.dylib
+                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavdevice.59.dylib
+                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavfilter.8.dylib
+                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavformat.59.dylib
 
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
