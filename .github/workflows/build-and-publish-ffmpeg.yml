@@ -105,7 +105,6 @@ jobs:
                   --enable-gpl \
                   --enable-nonfree \
                   --enable-version3 \
-                  --extra-cflags=-O3 \
                   --disable-programs \
                   --disable-doc \
                   --disable-debug \
@@ -114,8 +113,6 @@ jobs:
                   --enable-libfdk-aac \
                   --enable-libx264 \
                   --enable-libx265 \
-                  --enable-videotoolbox \
-                  --enable-audiotoolbox \
                   --enable-pthreads \
                   --disable-static \
                   --enable-shared \
