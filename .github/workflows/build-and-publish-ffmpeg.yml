@@ -101,11 +101,9 @@ jobs:
                   --prefix=@loader_path \
                   --libdir=@loader_path \
                   --extra-cflags=-O3 \
-                  --enable-rpath \
                   --enable-gpl \
                   --enable-nonfree \
                   --enable-version3 \
-                  --extra-cflags=-O3 \
                   --disable-programs \
                   --disable-doc \
                   --disable-debug \
@@ -114,8 +112,6 @@ jobs:
                   --enable-libfdk-aac \
                   --enable-libx264 \
                   --enable-libx265 \
-                  --enable-videotoolbox \
-                  --enable-audiotoolbox \
                   --enable-pthreads \
                   --disable-static \
                   --enable-shared \
@@ -234,8 +230,9 @@ jobs:
                       mv libswresample/libswresample.3.dylib ${{ env.macos-build-folder }}/libswresample.3.dylib
                       mv libswscale/libswscale.5.dylib ${{ env.macos-build-folder }}/libswscale.5.dylib
 
-                      # mark libfdk-aac.2.dylib as executable
+                      # mark libfdk-aac.2.dylib as executable and change its linking to match the Fractal Protocol folder structure
                       chmod +x ${{env.macos-build-folder }}/libfdk-aac.2.dylib
+                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavcodec.58.dylib
 
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
