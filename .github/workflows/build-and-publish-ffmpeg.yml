@@ -187,6 +187,9 @@ jobs:
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.linux-build-folder }}
                       mv docker-builds/* ${{ env.linux-build-folder }}/
+                      
+                      # change the linking of our own FFmpeg libs to make them work within the Fractal Protocol folder structure
+                      patchelf --set-rpath '$ORIGIN' ${{ env.linux-build-folder }}/*
 
                       # tar and uplaod
                       tar -zcvf ${{ env.linux-tar-name }} ${{ env.linux-build-folder }}
