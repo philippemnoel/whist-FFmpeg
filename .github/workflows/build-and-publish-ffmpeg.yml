@@ -223,7 +223,6 @@ jobs:
                   else
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.macos-build-folder }}
-                      mv /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib ${{env.macos-build-folder }}/libfdk-aac.2.dylib
                       mv libavcodec/libavcodec.59.dylib ${{ env.macos-build-folder }}/libavcodec.59.dylib
                       mv libavdevice/libavdevice.59.dylib ${{ env.macos-build-folder }}/libavdevice.59.dylib
                       mv libavfilter/libavfilter.8.dylib ${{ env.macos-build-folder }}/libavfilter.8.dylib
@@ -233,13 +232,20 @@ jobs:
                       mv libswresample/libswresample.4.dylib ${{ env.macos-build-folder }}/libswresample.4.dylib
                       mv libswscale/libswscale.6.dylib ${{ env.macos-build-folder }}/libswscale.6.dylib
 
-                      # mark libfdk-aac.2.dylib as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
-                      chmod +x ${{env.macos-build-folder }}/libfdk-aac.2.dylib
-                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavcodec.59.dylib
-                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavdevice.59.dylib
-                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavfilter.8.dylib
-                      install_name_tool -change /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib @loader_path/libfdk-aac.2.dylib ${{ env.macos-build-folder }}/libavformat.59.dylib
-
+                      # mark dependencies (fdk-aac, x264, x265) as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
+                      dependencies = "/usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib \
+                                      /usr/local/opt/x264/lib/libx264.161.dylib \
+                                      /usr/local/opt/x265/lib/libx265.199.dylib" 
+                      for DEPENDENCY in ${dependencies}
+                      do
+                        dylib = `basename $DEPENDENCY`
+                        mv $DEPENDENCY ${{ env.macos-build-folder }}/$dylib
+                        chmod +x ${{ env.macos-build-folder }}/$dylib
+                        for LIB in libavcodec.59.dylib libavdevice.59.dylib libavfilter.8.dylib libavformat.59.dylib
+                        do
+                          install_name_tool -change $DEPENDENCY @loader_path/$dylib ${{ env.macos-build-folder }}/$LIB
+                        done
+                      done
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
