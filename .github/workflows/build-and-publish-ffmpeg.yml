@@ -284,6 +284,7 @@ jobs:
                   libavcodec/videotoolbox.h \
                   libavcodec/vorbis_parser.h \
                   libavcodec/xvmc.h \
+                  libavcodec/defs.h \
                   ${{ env.headers-build-folder }}/libavcodec/
 
                   # libavdevice
