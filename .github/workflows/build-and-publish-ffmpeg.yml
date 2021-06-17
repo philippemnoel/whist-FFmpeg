@@ -276,7 +276,6 @@ jobs:
                   libavcodec/vaapi_decode.h \
                   libavcodec/vaapi_encode.h \
                   libavcodec/vaapi_hevc.h \
-                  libavcodec/vaapi_vpp.h \
                   libavcodec/vdpau.h \
                   libavcodec/version.h \
                   libavcodec/videotoolbox.h \
@@ -295,6 +294,7 @@ jobs:
                   libavfilter/avfilter.h \
                   libavfilter/buffersink.h \
                   libavfilter/buffersrc.h \
+                  libavfilter/vaapi_vpp.h \
                   libavfilter/version.h \
                   ${{ env.headers-build-folder }}/libavfilter/
 
