@@ -241,14 +241,12 @@ jobs:
                         /usr/local/opt/xz/lib/liblzma.5.dylib
                       )
 
-                      for DEPENDENCY in ${dependencies[*]}
-                      do
-                        dylib=`basename $DEPENDENCY`
-                        mv $DEPENDENCY ${{ env.macos-build-folder }}/$dylib
-                        chmod +x ${{ env.macos-build-folder }}/$dylib
-                        for LIB in libavcodec.59.dylib libavdevice.59.dylib libavfilter.8.dylib libavformat.59.dylib
-                        do
-                          install_name_tool -change $DEPENDENCY @loader_path/$dylib ${{ env.macos-build-folder }}/$LIB
+                      for DEPENDENCY in ${dependencies[*]}; do
+                        dylib="$(basename "$DEPENDENCY")"
+                        mv "$DEPENDENCY" "${{ env.macos-build-folder }}/$dylib"
+                        chmod +x "${{ env.macos-build-folder }}/$dylib"
+                        for LIB in libavcodec.59.dylib libavdevice.59.dylib libavfilter.8.dylib libavformat.59.dylib; do
+                          install_name_tool -change "$DEPENDENCY" "@loader_path/$dylib" "${{ env.macos-build-folder }}/$LIB"
                         done
                       done
                       # tar and uplaod
