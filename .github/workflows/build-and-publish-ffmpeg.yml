@@ -238,7 +238,8 @@ jobs:
                         /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib
                         /usr/local/opt/x264/lib/libx264.161.dylib
                         /usr/local/opt/x265/lib/libx265.199.dylib
-                        /usr/local/opt/libxcb/lib/libxcb-*.0.dylib
+                        /usr/local/opt/libxcb/lib/libxcb.1.dylib
+                        /usr/local/opt/libxcb/lib/libxcb-{shm,shape,xfixes}.0.dylib
                         /usr/local/opt/xz/lib/liblzma.5.dylib
                       )
                       for DEPENDENCY in ${dependencies[*]}; do
