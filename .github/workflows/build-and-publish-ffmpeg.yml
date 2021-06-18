@@ -232,7 +232,8 @@ jobs:
                       mv libswresample/libswresample.4.dylib ${{ env.macos-build-folder }}/libswresample.4.dylib
                       mv libswscale/libswscale.6.dylib ${{ env.macos-build-folder }}/libswscale.6.dylib
 
-                      # mark dependencies (fdk-aac, x264, x265, etc.) as executable and change its linking to work with our own FFmpeg libs within the Fractal Protocol folder structure
+                      # mark FFmpeg dependencies (fdk-aac, x264, x265, etc.) as executable and change their linking to work with
+                      # our own FFmpeg libs within the Fractal Protocol folder structure
                       dependencies=(
                         /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib
                         /usr/local/opt/x264/lib/libx264.161.dylib
@@ -240,7 +241,6 @@ jobs:
                         /usr/local/opt/libxcb/lib/libxcb-*.0.dylib
                         /usr/local/opt/xz/lib/liblzma.5.dylib
                       )
-
                       for DEPENDENCY in ${dependencies[*]}; do
                         dylib="$(basename "$DEPENDENCY")"
                         mv "$DEPENDENCY" "${{ env.macos-build-folder }}/$dylib"
@@ -249,6 +249,7 @@ jobs:
                           install_name_tool -change "$DEPENDENCY" "@loader_path/$dylib" "${{ env.macos-build-folder }}/$LIB"
                         done
                       done
+                      
                       # tar and uplaod
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
