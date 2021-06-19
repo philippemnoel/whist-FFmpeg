@@ -83,6 +83,12 @@ jobs:
                   sudo chown -R `whoami`:admin /usr/local/share
                   sudo chown -R `whoami`:admin /usr/local/opt
 
+            - name: On macOS, Install macdylibbundler
+              if: runner.os == 'macOS'
+              shell: bash
+              run: |
+                  brew install dylibbundler
+
             - name: On macOS, Install FFmpeg macOS Dependencies
               if: runner.os == 'macOS'
               shell: bash
@@ -221,38 +227,23 @@ jobs:
                       tar -zcvf ${{ env.windows-tar-name }} ${{ env.windows-build-folder }}
                       aws s3 cp ${{ env.windows-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.windows-tar-name }}
                   else
-                      # create protocol-compliant lib folder and move libs over
+                      # create staging folder for our dylib bundler to use
+                      # (important since the bundler expects to resolve between these binaries)
+                      mkdir dylib-bundle-staging
+                      mv lib{av{codec,device,filter,format,util},postproc,sw{resample,scale}}/*.dylib dylib-bundle-staging
+                      
+                      # create protocol-compliant lib folder to put patched binaries in
                       mkdir ${{ env.macos-build-folder }}
-                      mv libavcodec/libavcodec.59.dylib ${{ env.macos-build-folder }}/libavcodec.59.dylib
-                      mv libavdevice/libavdevice.59.dylib ${{ env.macos-build-folder }}/libavdevice.59.dylib
-                      mv libavfilter/libavfilter.8.dylib ${{ env.macos-build-folder }}/libavfilter.8.dylib
-                      mv libavformat/libavformat.59.dylib ${{ env.macos-build-folder }}/libavformat.59.dylib
-                      mv libavutil/libavutil.57.dylib ${{ env.macos-build-folder }}/libavutil.57.dylib
-                      mv libpostproc/libpostproc.56.dylib ${{ env.macos-build-folder }}/libpostproc.56.dylib
-                      mv libswresample/libswresample.4.dylib ${{ env.macos-build-folder }}/libswresample.4.dylib
-                      mv libswscale/libswscale.6.dylib ${{ env.macos-build-folder }}/libswscale.6.dylib
-
+                      
                       # mark FFmpeg dependencies (fdk-aac, x264, x265, etc.) as executable and change their linking to work with
                       # our own FFmpeg libs within the Fractal Protocol folder structure
-                      dependencies=(
-                        /usr/local/opt/fdk-aac/lib/libfdk-aac.2.dylib
-                        /usr/local/opt/x264/lib/libx264.161.dylib
-                        /usr/local/opt/x265/lib/libx265.199.dylib
-                        /usr/local/opt/libxcb/lib/libxcb.1.dylib
-                        /usr/local/opt/libxcb/lib/libxcb-{shm,shape,xfixes}.0.dylib
-                        /usr/local/opt/xz/lib/liblzma.5.dylib
-                      )
-                      for DEPENDENCY in ${dependencies[*]}; do
-                        dylib="$(basename "$DEPENDENCY")"
-                        # we must use `cp` here rather than `mv` to deep-copy symlinks
-                        cp "$DEPENDENCY" "${{ env.macos-build-folder }}/$dylib"
-                        chmod +x "${{ env.macos-build-folder }}/$dylib"
-                        for LIB in libavcodec.59.dylib libavdevice.59.dylib libavfilter.8.dylib libavformat.59.dylib; do
-                          install_name_tool -change "$DEPENDENCY" "@loader_path/$dylib" "${{ env.macos-build-folder }}/$LIB"
-                        done
-                      done
+                      dylibbundler \
+                        $(printf "-x %s " $(ls dylib-bundle-staging/*.dylib)) \
+                        -d ${{ env.macos-build-folder }} \
+                        -p "@loader_path" \
+                        -b
                       
-                      # tar and uplaod
+                      # tar and upload
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
                   fi
