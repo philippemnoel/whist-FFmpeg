@@ -86,8 +86,7 @@ jobs:
             - name: On macOS, Install macdylibbundler
               if: runner.os == 'macOS'
               shell: bash
-              run: |
-                  brew install dylibbundler
+              run: brew install dylibbundler
 
             - name: On macOS, Install FFmpeg macOS Dependencies
               if: runner.os == 'macOS'
@@ -186,7 +185,7 @@ jobs:
 
             # Only publish to AWS S3 on Push events (code merged into `main`), PRs only build to test
             - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
-              if: ${{ github.event_name == 'push' }}
+              if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
               shell: bash
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
@@ -256,7 +255,7 @@ jobs:
             # Only run once, as headers are identical on every OS, we run on macOS to generate version headers, which
             # don't generate properly on Linux
             - name: Tar FFmpeg headers and Upload to AWS S3 (Only on Push Events)
-              if: ${{ github.event_name == 'push' && runner.os == 'macOS' }}
+              if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && runner.os == 'macOS' }}
               shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
@@ -427,7 +426,7 @@ jobs:
             ###################################################################################
 
             - name: Notify Slack on Workflow Error (Only on Push Events)
-              if: ${{ github.event_name == 'push' && failure() }}
+              if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
               shell: bash
               run: |
                   curl -X POST \
@@ -437,7 +436,7 @@ jobs:
     notify-slack:
         name: Notify Slack
         needs: [build-and-publish-fractal-ffmpeg]
-        if: ${{ github.event_name == 'push' && success() }}
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && success() }}
         runs-on: ubuntu-20.04
         steps:
             - name: Notify Slack
