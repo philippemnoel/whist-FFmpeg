@@ -84,11 +84,6 @@ For every push to `main`, for instance when we pull the latest changes from upst
 
 See the Changelog above for the list of changes on top of the public version of FFmpeg that are incorporated in our internal Fractal version of FFmpeg.
 
-Here's a list of modifications we have made to the original FFmpeg fork:
-- Add 0RGB32 Cuda resizing to the `scale_cuda` filter (to replace sw_scale entirely in the Nvidia GPU)
-
-We have also added a Docker script to compile FFmpeg targeting Emscripten, the web-assembly compiler tool we use to compile the Fractal client to run in the browser, this allows using FFmpeg in the browser, and Docker scripts to compile FFmpeg on Linux Ubuntu 18.04 and Linux Ubuntu 20.04.
-
 ---
 
 FFmpeg README
