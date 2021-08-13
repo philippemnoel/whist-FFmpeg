@@ -1,7 +1,7 @@
-FROM ubuntu:20.04
+FROM ubuntu:21.04
 
 # Run commands noninteractively
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install essentials
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean

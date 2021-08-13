@@ -28,6 +28,6 @@ cd FFmpeg
 --enable-shared
 
 # Build FFmpeg and move static/shared libs
-make -j8 && rm -rf linux-build && mkdir linux-build
+make -j && rm -rf linux-build && mkdir linux-build
 find ./ -type f \( -iname \*.so -o -iname \*.a \) | xargs -I % cp % linux-build/ 
 make install && ldconfig
