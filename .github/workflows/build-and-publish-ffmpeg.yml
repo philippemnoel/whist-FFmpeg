@@ -14,7 +14,6 @@ on:
     push:
         branches:
             - main
-            - djsavvy/upgrade-to-ubuntu-21
         paths-ignore:
             - README.md
     workflow_dispatch:
