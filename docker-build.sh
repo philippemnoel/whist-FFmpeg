@@ -11,7 +11,7 @@ LIBS=(libavcodec libavdevice libavfilter libavformat libavutil libswresample lib
 for lib in "${LIBS[@]}"; do
     echo "Copying over $lib"
     
-    # echo "Command is: docker cp ${containter_id}:${LIB_LOC}/${lib}.so docker-builds"
+    # echo "Command is: docker cp ${container_id}:${LIB_LOC}/${lib}.so docker-builds"
     docker exec ${container_id} /bin/bash -c "cp ${LIB_LOC}/${lib}* /docker-builds"
 done
 

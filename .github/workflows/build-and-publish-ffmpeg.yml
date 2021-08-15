@@ -27,9 +27,9 @@ jobs:
             matrix:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
-                      os: windows-2016 # Same OS as Windows 10
+                      os: windows-2019 # Same OS as Windows 10
                     - name: "Build and Publish Fractal FFmpeg on macOS"
-                      os: macos-10.14 # Xcode and Homebrew come preinstalled
+                      os: macos-10.15 # Xcode and Homebrew come preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
                       os: ubuntu-20.04
 
@@ -77,7 +77,6 @@ jobs:
 
             - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               if: runner.os == 'macOS'
-              shell: bash
               run: |
                   sudo chown -R `whoami`:admin /usr/local/bin
                   sudo chown -R `whoami`:admin /usr/local/share
@@ -85,12 +84,10 @@ jobs:
 
             - name: On macOS, Install macdylibbundler
               if: runner.os == 'macOS'
-              shell: bash
               run: brew install dylibbundler
 
             - name: On macOS, Install FFmpeg macOS Dependencies
               if: runner.os == 'macOS'
-              shell: bash
               run: |
                   brew install \
                   automake fdk-aac git lame libass libtool libvorbis libvpx \
@@ -98,9 +95,8 @@ jobs:
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
-            - name: On macOs, Configure and Make FFmpeg
+            - name: On macOS, Configure and Make FFmpeg
               if: runner.os == 'macOS'
-              shell: bash
               run: |
                   ./configure \
                   --prefix=@loader_path \
@@ -127,7 +123,6 @@ jobs:
 
             - name: Build FFmpeg on Linux Ubuntu through Docker
               if: runner.os == 'Linux'
-              shell: bash
               run: ./docker-build.sh 20
 
             ###################################################################################
@@ -141,7 +136,7 @@ jobs:
                   visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
                   cuda: "11.3.1" # Imported from env in the .ps1 script
               run: |
-                  & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+                  & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
                   .\build\ffmpeg\.github\workflows\helpers\install_cuda_windows.ps1
                     if ($?) {
                       # Set paths for subsequent steps, using $env:CUDA_PATH
@@ -163,7 +158,7 @@ jobs:
             - name: On Windows, Move Preconfigured media-autobuild_suite Config Files Over to C:\media-autobuild_suite/build
               if: runner.os == 'Windows'
               working-directory: C:\media-autobuild_suite
-              shell: bash
+              shell: bash --noprofile --norc -eo pipefail {0}
               run: |
                   cp \
                   build/ffmpeg/.github/workflows/helpers/media-autobuild_suite.ini \
@@ -186,13 +181,13 @@ jobs:
             # Only publish to AWS S3 on Push events (code merged into `main`), PRs only build to test
             - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
               if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-              shell: bash
+              shell: bash --noprofile --norc -eo pipefail {0}
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
                       # create protocol-compliant lib folder and move libs over
                       mkdir ${{ env.linux-build-folder }}
                       mv docker-builds/* ${{ env.linux-build-folder }}/
-                      
+
                       # change the linking of our own FFmpeg libs to make them work within the Fractal Protocol folder structure
                       patchelf --set-rpath '$ORIGIN' ${{ env.linux-build-folder }}/*
 
@@ -232,10 +227,10 @@ jobs:
 
                       # remember to move the versioned libavcodec.58.dylib, for example, not the libavcodec.dylib
                       mv lib{av{codec,device,filter,format,util},postproc,sw{resample,scale}}/*.*.dylib dylib-bundle-staging
-                      
+
                       # create protocol-compliant lib folder to put patched binaries in
                       mkdir ${{ env.macos-build-folder }}
-                      
+
                       # mark FFmpeg dependencies (fdk-aac, x264, x265, etc.) as executable and change their linking to work with
                       # our own FFmpeg libs within the Fractal Protocol folder structure
                       # note that printf on bash is /usr/bin/printf, which handles the -x poorly by default
@@ -246,7 +241,7 @@ jobs:
                         -b
                       mv dylib-bundle-staging/*.dylib ${{ env.macos-build-folder }}
                       chmod +x ${{ env.macos-build-folder }}/*.dylib
-                      
+
                       # tar and upload
                       tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
                       aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
@@ -256,13 +251,11 @@ jobs:
             # don't generate properly on Linux
             - name: Tar FFmpeg headers and Upload to AWS S3 (Only on Push Events)
               if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && runner.os == 'macOS' }}
-              shell: bash
               run: |
                   # create protocol-compliant headers folder and subfolders
                   mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
 
                   # move select header files over to tar, only the ones needed
-
                   # libavcodec
                   mv \
                   libavcodec/ac3_parser.h \
@@ -427,7 +420,7 @@ jobs:
 
             - name: Notify Slack on Workflow Error (Only on Push Events)
               if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-              shell: bash
+              shell: bash --noprofile --norc -eo pipefail {0}
               run: |
                   curl -X POST \
                   --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy \`FFmpeg\` Shared Libraries to AWS S3, investigate immediately :rotating_light:\", \"icon_emoji\": \":fractal:\"}" \
