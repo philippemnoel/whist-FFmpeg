@@ -79,7 +79,21 @@ $mvs_dir = "C:\Program Files (x86)\Microsoft Visual Studio"
 $mvs_year = Get-ChildItem -Path $mvs_dir -Name | Select-Object -First 1
 $mvs_edition = Get-ChildItem -Path "$($mvs_dir)\$($mvs_year)" -Name | Select-Object -Last 1
 $msvc_dir = "$($mvs_dir)\$($mvs_year)\$($mvs_edition)\VC\Tools\MSVC"
-$msvc_version = Get-ChildItem -Path $msvc_dir -Name | Select-Object -First 1
+$msvc_version = Get-ChildItem -Path $msvc_dir -Name
+
+echo "\n=======\n"
+echo "$mvs_dir"
+echo "\n"
+echo "$mvs_year"
+echo "\n"
+echo "$mvs_edition"
+echo "\n"
+echo "$msvc_dir"
+echo "\n"
+echo "$msvc_version"
+echo "\n======\n"
+
+
 $cl_location = "$($msvc_dir)\$($msvc_version)\bin\Hostx64\x64\cl.exe"
 
 # Exit if VS compiler version isn't supported by cuda version
