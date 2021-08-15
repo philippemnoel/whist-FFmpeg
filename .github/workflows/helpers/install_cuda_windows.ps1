@@ -55,7 +55,7 @@ $CUDA_PACKAGES_IN = @(
 ## Select CUDA version
 ## -------------------
 
-# Get the cuda version from the environment as env:cuda.
+# Get the CUDA version from the environment as env:cuda.
 $CUDA_VERSION_FULL = $env:cuda
 
 # Make sure CUDA_VERSION_FULL is set and valid, otherwise error.
@@ -71,7 +71,7 @@ $CUDA_PATCH=$Matches.patch
 $CUDA_FIRSTPATCH = $CUDA_PATCH.SubString(0, 1)
 
 ## ---------------------------
-## Visual studio support check
+## Visual Studio support check
 ## ---------------------------
 
 # Get cl.exe location

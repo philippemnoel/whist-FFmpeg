@@ -28,7 +28,7 @@ jobs:
             matrix:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
-                      os: windows-2016 # Same OS as Windows 10
+                      os: windows-2019 # Same OS as Windows 10
                     - name: "Build and Publish Fractal FFmpeg on macOS"
                       os: macos-10.15 # Xcode and Homebrew come preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
