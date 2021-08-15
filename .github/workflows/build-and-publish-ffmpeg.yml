@@ -421,6 +421,7 @@ jobs:
 
             - name: Notify Slack on Workflow Error (Only on Push Events)
               if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
+              shell: bash --noprofile --norc -eo pipefail {0}
               run: |
                   curl -X POST \
                   --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy \`FFmpeg\` Shared Libraries to AWS S3, investigate immediately :rotating_light:\", \"icon_emoji\": \":fractal:\"}" \
