@@ -133,7 +133,7 @@ jobs:
               working-directory: C:\media-autobuild_suite
               shell: powershell
               env:
-                  visual_studio: "Visual Studio 16.11 2019" # Imported from env in the .ps1 script
+                  visual_studio: "Visual Studio 16 2019" # Imported from env in the .ps1 script
                   cuda: "11.3.1" # Imported from env in the .ps1 script
               run: |
                   & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
