@@ -60,9 +60,9 @@ jobs:
 
             - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               run: |
-                  sudo chown -R `whoami`:admin /usr/local/bin
-                  sudo chown -R `whoami`:admin /usr/local/share
-                  sudo chown -R `whoami`:admin /usr/local/opt
+                  chown -R `whoami`:admin /usr/local/bin
+                  chown -R `whoami`:admin /usr/local/share
+                  chown -R `whoami`:admin /usr/local/opt
 
             - name: Install macdylibbundler
               run: brew install dylibbundler
