@@ -28,7 +28,7 @@ jobs:
                 config:
                     - name: "Build and Publish Fractal FFmpeg on Windows"
                       os: windows-2019 # Same OS as Windows 10
-                    - name: "Build and Publish Fractal FFmpeg on macOS"
+                    - name: "Build and Publish Fractal FFmpeg on macOS (X64)"
                       os: macos-10.15 # Xcode and Homebrew come preinstalled
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
                       os: ubuntu-20.04
@@ -37,7 +37,7 @@ jobs:
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
             windows-build-folder: Windows
-            macos-tar-name: fractal-macos-ffmpeg-shared-lib.tar.gz
+            macos-tar-name: fractal-macos-x64-ffmpeg-shared-lib.tar.gz
             macos-build-folder: Darwin
             linux-tar-name: fractal-linux-ffmpeg-shared-lib.tar.gz
             linux-build-folder: Linux
@@ -423,7 +423,7 @@ jobs:
               shell: bash --noprofile --norc -eo pipefail {0}
               run: |
                   curl -X POST \
-                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy \`FFmpeg\` Shared Libraries to AWS S3, investigate immediately :rotating_light:\", \"icon_emoji\": \":fractal:\"}" \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy Fractal X86_64 \`FFmpeg\` Shared Libraries to AWS S3, investigate immediately :rotating_light: (<https://github.com/fractal/fractal/actions/runs/${{ github.run_id }} | see logs>)\", \"icon_emoji\": \":fractal:\"}" \
                   ${{ secrets.SLACK_HOOKS_ENDPOINT }}
 
     notify-slack:
@@ -435,5 +435,5 @@ jobs:
             - name: Notify Slack
               run: |
                   curl -X POST \
-                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal X86_64 \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
                   ${{ secrets.SLACK_HOOKS_ENDPOINT }}
