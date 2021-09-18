@@ -1,0 +1,146 @@
+# workflows/build-and-publish-ffmpeg-macos-arm64.yml
+#
+# Build & Publish Fractal FFmpeg
+# Build and publish the internal Fractal version of FFmpeg for macOS ARM64 
+# by building on a self-hosted MacStadium M1 Mac Mini and  uploading compiled libs to AWS S3.
+
+name: "Build & Publish Fractal FFmpeg"
+
+on:
+    pull_request:
+        branches:
+            - main
+        paths-ignore:
+            - README.md
+    push:
+        branches:
+            - main
+        paths-ignore:
+            - README.md
+    workflow_dispatch:
+
+jobs:
+    build-and-publish-fractal-ffmpeg:
+        name: "Build and Publish Fractal FFmpeg on macOS (ARM64)"
+        runs-on: [self-hosted, macOS, ARM64]
+        defaults:
+          run:
+            shell: "/usr/bin/arch -arch arm64e /bin/bash {0}"
+
+        env:
+            macos-tar-name: fractal-macos-arm64-ffmpeg-shared-lib.tar.gz
+            macos-build-folder: Darwin
+            s3-bucket-region: us-east-1
+            s3-bucket-uri: s3://fractal-protocol-shared-libs
+
+        steps:
+            ################################# CONFIG STEPS START ###############################
+
+            - name: Check M1 Runner Status
+              run: |
+                clang --version
+                uname -a
+
+            - name: Checkout Git Repository
+              uses: actions/checkout@v2
+            
+            - name: Install awscli, cmake, gcc, and pkg-config
+              run: brew install awscli cmake pkg-config gcc 
+
+            # For uploading the compiled libs to AWS S3
+            - name: Configure AWS S3 CLI
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+                  aws-region: ${{ env.s3-bucket-region }}
+
+            ###################################################################################
+            ##################################### BUILDING ####################################
+
+            - name: Install macdylibbundler
+              run: brew install dylibbundler
+
+            - name: Install FFmpeg macOS Dependencies
+              run: |
+                  brew install \
+                  automake fdk-aac git lame libass libtool libvorbis libvpx \
+                  opus sdl shtool texi2html theora wget x264 x265 xvid nasm
+
+            # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
+            # we only configure the minimum required flags for the Fractal protocol
+            - name: On macOS, Configure and Make FFmpeg
+              run: |
+                  ./configure \
+                  --prefix=@loader_path \
+                  --libdir=@loader_path \
+                  --extra-cflags=-O3 \
+                  --enable-gpl \
+                  --enable-nonfree \
+                  --enable-version3 \
+                  --disable-programs \
+                  --disable-doc \
+                  --disable-debug \
+                  --disable-sdl2 \
+                  --enable-opengl \
+                  --enable-libfdk-aac \
+                  --enable-libx264 \
+                  --enable-libx265 \
+                  --enable-pthreads \
+                  --disable-static \
+                  --enable-shared \
+                  && make
+
+            ###################################################################################
+            ################################# PUBLISH STEPS START #############################
+
+            # Only publish to AWS S3 on Push events (code merged into `main`), PRs only build to test
+            - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
+              if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+              run: |
+                    # create staging folder for our dylib bundler to use
+                    # (important since the bundler expects to resolve between these binaries)
+                    mkdir dylib-bundle-staging
+
+                    # remember to move the versioned libavcodec.58.dylib, for example, not the libavcodec.dylib
+                    mv lib{av{codec,device,filter,format,util},postproc,sw{resample,scale}}/*.*.dylib dylib-bundle-staging
+
+                    # create protocol-compliant lib folder to put patched binaries in
+                    mkdir ${{ env.macos-build-folder }}
+
+                    # mark FFmpeg dependencies (fdk-aac, x264, x265, etc.) as executable and change their linking to work with
+                    # our own FFmpeg libs within the Fractal Protocol folder structure
+                    # note that printf on bash is /usr/bin/printf, which handles the -x poorly by default
+                    dylibbundler \
+                      $(printf -- '-x %s ' $(ls dylib-bundle-staging/*.dylib)) \
+                      -d ${{ env.macos-build-folder }} \
+                      -p "@loader_path" \
+                      -b
+                    mv dylib-bundle-staging/*.dylib ${{ env.macos-build-folder }}
+                    chmod +x ${{ env.macos-build-folder }}/*.dylib
+
+                    # tar and upload
+                    tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
+                    aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
+
+            ###################################################################################
+
+            - name: Notify Slack on Workflow Error (Only on Push Events)
+              if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
+              shell: bash --noprofile --norc -eo pipefail {0}
+              run: |
+                  curl -X POST \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"@releases :rotating_light: Failed to deploy Fractal ARM64 macOS \`FFmpeg\` Shared Libraries to AWS S3, investigate immediately :rotating_light: (<https://github.com/fractal/fractal/actions/runs/${{ github.run_id }} | see logs>)\", \"icon_emoji\": \":fractal:\"}" \
+                  ${{ secrets.SLACK_HOOKS_ENDPOINT }}
+
+    notify-slack:
+        name: Notify Slack
+        needs: [build-and-publish-fractal-ffmpeg]
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && success() }}
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Notify Slack
+              run: |
+                  curl -X POST \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal ARM64 macOS \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
+                  ${{ secrets.SLACK_HOOKS_ENDPOINT }}
