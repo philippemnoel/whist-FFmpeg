@@ -9,7 +9,7 @@ This repository is Fractal's fork of FFmpeg, with a few modifications. We forked
 
 - Modify `av_malloc` to align data to system pagesize to conform with macOS' Metal API, to avoid unnecessary memory copies from CPU to GPU between video decoding and video rendering with SDL
 
-- Created a GitHub Actions workflow, `build-and-publish-ffmpeg.yml` to build, test and publish on Windows, macOS and Linux Ubuntu, including configuring proper permissions and linking paths (on macOS, notably)
+- Created a GitHub Actions workflow, `build-and-publish-ffmpeg-x64.yml` and `build-and-publish-ffmpeg-macos-arm64.yml` to build, test and publish on Windows, macOS and Linux Ubuntu, including configuring proper permissions and linking paths (on macOS, notably)
 
 - Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
 

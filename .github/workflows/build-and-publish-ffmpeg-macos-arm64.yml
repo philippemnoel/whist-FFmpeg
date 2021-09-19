@@ -2,7 +2,7 @@
 #
 # Build & Publish Fractal FFmpeg
 # Build and publish the internal Fractal version of FFmpeg for macOS ARM64 
-# by building on a self-hosted MacStadium M1 Mac Mini and  uploading compiled libs to AWS S3.
+# by building on a self-hosted MacStadium M1 Mac Mini and uploading the compiled libs to AWS S3.
 
 name: "Build & Publish Fractal FFmpeg"
 
@@ -47,7 +47,6 @@ jobs:
             - name: Install awscli, cmake, gcc, and pkg-config
               run: brew install awscli cmake pkg-config gcc 
 
-            # For uploading the compiled libs to AWS S3
             - name: Configure AWS S3 CLI
               uses: aws-actions/configure-aws-credentials@v1
               with:

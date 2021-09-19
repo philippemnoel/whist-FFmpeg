@@ -1,7 +1,7 @@
-# workflows/build-and-publish-ffmpeg.yml
+# workflows/build-and-publish-ffmpeg-x64.yml
 #
 # Build & Publish Fractal FFmpeg
-# Build and publish the internal Fractal version of FFmpeg by uploading compiled libs to AWS S3.
+# Build and publish the internal Fractal version of FFmpeg by uploading the compiled libs to AWS S3.
 
 name: "Build & Publish Fractal FFmpeg"
 
@@ -33,7 +33,6 @@ jobs:
                     - name: "Build and Publish Fractal FFmpeg on Linux Ubuntu"
                       os: ubuntu-20.04
 
-        # Environment variables for the deployment
         env:
             windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
             windows-build-folder: Windows
@@ -64,7 +63,6 @@ jobs:
                   REM then, clone fractal/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
                   git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/fractal/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
-            # For uploading the compiled libs to AWS S3
             - name: Configure AWS S3 CLI
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -435,5 +433,5 @@ jobs:
             - name: Notify Slack
               run: |
                   curl -X POST \
-                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal X86_64 \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
+                  --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal X86_64 \`FFmpeg\` Shared Libraries deployed to Production via upload to AWS S3\", \"icon_emoji\": \":fractal:\"}" \
                   ${{ secrets.SLACK_HOOKS_ENDPOINT }}
