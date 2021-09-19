@@ -1,7 +1,7 @@
 Fractal README
 =============
 
-[![Build & Publish Fractal FFmpeg](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml/badge.svg)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml)
+[![Build & Publish Fractal FFmpeg (X86_64)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg-x64.yml/badge.svg)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg-x64.yml) [![Build & Publish Fractal FFmpeg (ARM64)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg-macos-arm64.yml/badge.svg)](https://github.com/fractal/FFmpeg/actions/workflows/build-and-publish-ffmpeg-macos-arm64.yml)
 
 This repository is Fractal's fork of FFmpeg, with a few modifications. We forked SDL so that we can control and optimize it for better integration with the Fractal streaming protocol.
 
