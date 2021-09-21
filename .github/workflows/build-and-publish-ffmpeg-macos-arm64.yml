@@ -63,16 +63,15 @@ jobs:
             - name: Install FFmpeg macOS Dependencies
               run: |
                   brew install \
-                  automake fdk-aac git lame libass libtool libvorbis libvpx \
-                  opus sdl shtool texi2html theora wget x264 x265 xvid nasm
+                  automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
-            # Note: we manually specify --arch=arm to ensure building targeting arm64
+            # Note: we manually specify --arch=arm64 (show up as aarch64 in FFmpeg logs)
             - name: On macOS, Configure and Make FFmpeg
               run: |
                   ./configure \
-                  --arch=arm \
+                  --arch=arm64 \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
                   --extra-cflags=-O3 \
