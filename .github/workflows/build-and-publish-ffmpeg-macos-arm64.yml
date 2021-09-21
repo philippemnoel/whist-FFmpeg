@@ -68,11 +68,11 @@ jobs:
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
-            # Note: we manually specify --arch=arm64 to ensure proper linking
+            # Note: we manually specify --arch=arm to ensure building targeting arm64
             - name: On macOS, Configure and Make FFmpeg
               run: |
                   ./configure \
-                  --arch=arm64 \
+                  --arch=arm \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
                   --extra-cflags=-O3 \
