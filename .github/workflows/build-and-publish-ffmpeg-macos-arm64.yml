@@ -62,6 +62,7 @@ jobs:
             - name: Install macOS Codesigning Certificates on macOS GHA Machine
               uses: apple-actions/import-codesign-certs@v1
               with:
+                keychain: fractal_signing_temp # Default 'signing_temp' already exists on MacStadium machines
                 p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
                 p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
 
