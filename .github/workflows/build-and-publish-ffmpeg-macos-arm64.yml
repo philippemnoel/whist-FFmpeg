@@ -59,7 +59,6 @@ jobs:
 
             # On Apple silicon, Homebrew installs libs to /opt/homebrew/*
             - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
-              if: runner.os == 'macOS'
               run: |
                   sudo chown -R `whoami`:admin /opt/homebrew/sbin
                   sudo chown -R `whoami`:admin /opt/homebrew/share
