@@ -60,9 +60,9 @@ jobs:
             # On Apple silicon, Homebrew installs libs to /opt/homebrew/*
             - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               run: |
-                  sudo chown -R `whoami`:admin /opt/homebrew/sbin
-                  sudo chown -R `whoami`:admin /opt/homebrew/share
-                  sudo chown -R `whoami`:admin /opt/homebrew/opt
+                  chown -R `whoami`:admin /opt/homebrew/sbin
+                  chown -R `whoami`:admin /opt/homebrew/share
+                  chown -R `whoami`:admin /opt/homebrew/opt
                   
             - name: Install macdylibbundler
               run: brew install dylibbundler
