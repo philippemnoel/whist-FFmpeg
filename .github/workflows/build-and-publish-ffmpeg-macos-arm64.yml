@@ -57,11 +57,8 @@ jobs:
             ###################################################################################
             ##################################### BUILDING ####################################
 
-
-
-            # 
-
-            
+            # Apple requires all executables starting with M1 ARM64 to be signed, so we need to
+            # import our codesigning certificate to re-sign FFmpeg dependencies we bundle
             - name: Install macOS Codesigning Certificates on macOS GHA Machine
               uses: apple-actions/import-codesign-certs@v1
               with:
@@ -83,8 +80,7 @@ jobs:
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
-            # Note: we manually specify --arch=arm64 (show up as aarch64 in FFmpeg logs), and 
-            # --pkg-config-flags=--static is required to respect the Libs.private flags of the *.pc files
+            # Note: we manually specify --arch=arm64 (show up as aarch64 in FFmpeg logs) 
             - name: On macOS, Configure and Make FFmpeg
               run: |
                   ./configure \
@@ -92,7 +88,6 @@ jobs:
                   --arch=arm64 \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
-                  --pkg-config-flags=--static \
                   --extra-cflags=-O3 \
                   --enable-gpl \
                   --enable-nonfree \
