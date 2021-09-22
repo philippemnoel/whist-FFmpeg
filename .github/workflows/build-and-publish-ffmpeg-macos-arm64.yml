@@ -59,12 +59,16 @@ jobs:
 
             # Apple requires all executables starting with M1 ARM64 to be signed, so we need to
             # import our codesigning certificate to re-sign FFmpeg dependencies we bundle
-            - name: Install macOS Codesigning Certificates on macOS GHA Machine
-              uses: apple-actions/import-codesign-certs@v1
-              with:
-                keychain: fractal_signing_temp # Default 'signing_temp' already exists on MacStadium machines
-                p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
-                p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
+            # NOTE: This step is commented out because we run on a self-hosted runner (so the environment
+            # persists between runs, and it will error out saying that this keychain already exists). It
+            # is kept here for reference, and in case you need to configure a new keychain certificate by 
+            # simply changing the name of the keychain: argument
+            # - name: Install macOS Codesigning Certificates on macOS GHA Machine
+            #    uses: apple-actions/import-codesign-certs@v1
+            #    with:
+            #      keychain: fractal_signing_temp # Default 'signing_temp' already exists on MacStadium machines
+            #      p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
+            #      p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
 
             # On Apple silicon, Homebrew installs libs to /opt/homebrew/*
             - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
