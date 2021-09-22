@@ -57,6 +57,17 @@ jobs:
             ###################################################################################
             ##################################### BUILDING ####################################
 
+
+
+            # 
+
+            
+            - name: Install macOS Codesigning Certificates on macOS GHA Machine
+              uses: apple-actions/import-codesign-certs@v1
+              with:
+                p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
+                p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
+
             # On Apple silicon, Homebrew installs libs to /opt/homebrew/*
             - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               run: |
@@ -72,7 +83,8 @@ jobs:
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
-            # Note: we manually specify --arch=arm64 (show up as aarch64 in FFmpeg logs)
+            # Note: we manually specify --arch=arm64 (show up as aarch64 in FFmpeg logs), and 
+            # --pkg-config-flags=--static is required to respect the Libs.private flags of the *.pc files
             - name: On macOS, Configure and Make FFmpeg
               run: |
                   ./configure \
@@ -80,6 +92,7 @@ jobs:
                   --arch=arm64 \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
+                  --pkg-config-flags=--static \
                   --extra-cflags=-O3 \
                   --enable-gpl \
                   --enable-nonfree \
@@ -93,9 +106,10 @@ jobs:
                   --enable-libx264 \
                   --enable-libx265 \
                   --enable-pthreads \
+                  --enable-neon \
                   --disable-static \
                   --enable-shared \
-                  && make
+                  && make -j
 
             ###################################################################################
             ################################# PUBLISH STEPS START #############################
@@ -124,6 +138,10 @@ jobs:
                       -b
                     mv dylib-bundle-staging/*.dylib ${{ env.macos-build-folder }}
                     chmod +x ${{ env.macos-build-folder }}/*.dylib
+
+                    # Apple requires all executables to be signed starting with M1 ARM64, and the dylibbundler invalidates the
+                    # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything
+                    codesign -f -v -s "Fractal Computers, Inc." ${{ env.macos-build-folder }}/*.dylib
 
                     # tar and upload
                     tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
