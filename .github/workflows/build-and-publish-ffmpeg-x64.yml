@@ -73,6 +73,7 @@ jobs:
             ###################################################################################
             ################################# MACOS STEPS START ###############################
 
+            # On Intel silicon, Homebrew installs libs to /usr/local/*
             - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               if: runner.os == 'macOS'
               run: |
