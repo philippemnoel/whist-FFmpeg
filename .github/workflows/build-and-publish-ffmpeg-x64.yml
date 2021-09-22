@@ -86,9 +86,7 @@ jobs:
 
             - name: On macOS, Install FFmpeg macOS Dependencies
               if: runner.os == 'macOS'
-              run: |
-                  brew install \
-                  automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
+              run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
@@ -96,6 +94,7 @@ jobs:
               if: runner.os == 'macOS'
               run: |
                   ./configure \
+                  --cc=/usr/bin/clang \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
                   --extra-cflags=-O3 \

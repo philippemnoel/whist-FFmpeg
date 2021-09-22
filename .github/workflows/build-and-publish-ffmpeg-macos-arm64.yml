@@ -61,9 +61,7 @@ jobs:
               run: brew install dylibbundler
 
             - name: Install FFmpeg macOS Dependencies
-              run: |
-                  brew install \
-                  automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
+              run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
 
             # We disable command-line programs and SDL2 since we have our own SDL2 static build, so
             # we only configure the minimum required flags for the Fractal protocol
@@ -71,6 +69,7 @@ jobs:
             - name: On macOS, Configure and Make FFmpeg
               run: |
                   ./configure \
+                  --cc=/usr/bin/clang \
                   --arch=arm64 \
                   --prefix=@loader_path \
                   --libdir=@loader_path \
