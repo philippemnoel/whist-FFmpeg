@@ -111,9 +111,10 @@ jobs:
                   --enable-libx264 \
                   --enable-libx265 \
                   --enable-pthreads \
+                  --enable-neon \
                   --disable-static \
                   --enable-shared \
-                  && make
+                  && make -j
 
             ###################################################################################
             ############################# LINUX UBUNTU STEPS START ############################
