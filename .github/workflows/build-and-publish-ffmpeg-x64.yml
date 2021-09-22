@@ -77,9 +77,9 @@ jobs:
             - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
               if: runner.os == 'macOS'
               run: |
-                  chown -R `whoami`:admin /usr/local/bin
-                  chown -R `whoami`:admin /usr/local/share
-                  chown -R `whoami`:admin /usr/local/opt
+                  sudo chown -R `whoami`:admin /usr/local/bin
+                  sudo chown -R `whoami`:admin /usr/local/share
+                  sudo chown -R `whoami`:admin /usr/local/opt
 
             - name: On macOS, Install macdylibbundler
               if: runner.os == 'macOS'
