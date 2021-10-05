@@ -571,5 +571,5 @@ jobs:
       - name: Notify Slack
         run: |
           curl -X POST \
-          --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal ARM64 \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3 (<https://github.com/fractal/fractal/actions/runs/${{ github.run_id }} | see logs>)\", \"icon_emoji\": \":fractal:\"}" \
+          --data-urlencode "payload={\"channel\": \"#alerts-prod\", \"username\": \"Fractal Bot\", \"text\": \"Fractal \`FFmpeg\` Shared Libraries Deployed to Production via Upload to AWS S3 (<https://github.com/fractal/fractal/actions/runs/${{ github.run_id }} | see logs>)\", \"icon_emoji\": \":fractal:\"}" \
           ${{ secrets.SLACK_HOOKS_ENDPOINT }}
