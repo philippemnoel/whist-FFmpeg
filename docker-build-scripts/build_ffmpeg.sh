@@ -16,6 +16,7 @@ cd FFmpeg
 --enable-opengl \
 --enable-frei0r \
 --enable-libfdk-aac \
+--enable-libopus \
 --enable-libx264 \
 --enable-libx265 \
 --enable-cuda-nvcc \

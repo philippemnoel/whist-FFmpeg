@@ -22,7 +22,7 @@
 # Common options
 #--enable-gmp
 #--enable-libmp3lame
-#--enable-libopus
+--enable-libopus
 #--enable-libvorbis
 #--enable-libvpx
 --enable-libx264
