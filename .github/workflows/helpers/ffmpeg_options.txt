@@ -31,7 +31,6 @@
 #--enable-libaom
 --disable-debug
 --enable-libopus
-#--enable-libfdk-aac
 
 # Zeranoe
 #--enable-fontconfig
