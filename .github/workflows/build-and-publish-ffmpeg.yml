@@ -157,7 +157,7 @@ jobs:
           --disable-debug \
           --disable-sdl2 \
           --enable-opengl \
-          --enable-libfdk-aac \
+          --enable-libopus \
           --enable-libx264 \
           --enable-libx265 \
           --enable-pthreads \
@@ -520,7 +520,7 @@ jobs:
           --disable-debug \
           --disable-sdl2 \
           --enable-opengl \
-          --enable-libfdk-aac \
+          --enable-libopus \
           --enable-libx264 \
           --enable-libx265 \
           --enable-pthreads \
