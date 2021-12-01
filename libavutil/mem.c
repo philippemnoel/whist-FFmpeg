@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #if HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -61,7 +62,13 @@ void  free(void *ptr);
 
 #include "mem_internal.h"
 
+#ifdef __APPLE__
+// Modified by Fractal: we align to pagesize instead to integrate better with Metal and SDL
+#define ALIGN sysconf(_SC_PAGESIZE)
+#else
+// Old FFmpeg definition, used for non-Apple (no Metal)
 #define ALIGN (HAVE_AVX512 ? 64 : (HAVE_AVX ? 32 : 16))
+#endif
 
 /* NOTE: if you want to override these functions with your own
  * implementations (not recommended) you have to link libav* as
