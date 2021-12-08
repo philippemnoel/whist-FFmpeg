@@ -63,7 +63,7 @@ void  free(void *ptr);
 #include "mem_internal.h"
 
 #ifdef __APPLE__
-// Modified by Fractal: we align to pagesize instead to integrate better with Metal and SDL
+// Modified by Whist: we align to pagesize instead to integrate better with Metal and SDL
 #define ALIGN sysconf(_SC_PAGESIZE)
 #else
 // Old FFmpeg definition, used for non-Apple (no Metal)

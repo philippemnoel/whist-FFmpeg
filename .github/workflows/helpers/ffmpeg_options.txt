@@ -4,16 +4,16 @@
 # Basic built-in options, can be removed if you delete "--disable-autodetect"
 --disable-autodetect
 --enable-amf
---enable-bzlib
+#--enable-bzlib
 --enable-cuda
 --enable-cuvid
 --enable-d3d11va
 --enable-dxva2
---enable-iconv
---enable-lzma
+#--enable-iconv
+#--enable-lzma
 --enable-nvenc
---enable-schannel
---enable-zlib
+#--enable-schannel
+#--enable-zlib
 # --enable-sdl2
 --enable-ffnvcodec
 #--enable-nvdec
@@ -30,7 +30,7 @@
 #--enable-libdav1d
 #--enable-libaom
 --disable-debug
---enable-libfdk-aac
+#--enable-libfdk-aac
 
 # Zeranoe
 #--enable-fontconfig
@@ -108,7 +108,7 @@
 #--enable-libnpp
 #--enable-libopenh264
 
-# Fractal-added options
+# Whist-added options
 --enable-nonfree
 --disable-programs
 --disable-doc 
