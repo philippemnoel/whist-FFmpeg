@@ -435,7 +435,7 @@ jobs:
           from notifications.slack_bot import slack_post
           SLACK_WEBHOOK = "${{ secrets.SLACK_HOOKS_ENDPOINT_PROD }}"
           SLACK_CHANNEL = "#alerts-prod"
-          BODY = f"@releases :rotating_light: Failed to deploy Whist `FFmpeg ${{ matrix.config.name }}` Shared Library to AWS S3, investigate immediately :rotating_light: (<https://github.com/whisthq/whist/actions/runs/${{ github.run_id }} | see logs>)"
+          BODY = f"@releases :rotating_light: Failed to deploy Whist `FFmpeg ${{ matrix.config.name }}` Shared Library to AWS S3, investigate immediately :rotating_light: (<https://github.com/whisthq/FFmpeg/actions/runs/${{ github.run_id }} | see logs>)"
           slack_post(slack_webhook=SLACK_WEBHOOK, channel=SLACK_CHANNEL, body=BODY)
 
   #######################################################################################
@@ -587,7 +587,7 @@ jobs:
           from notifications.slack_bot import slack_post
           SLACK_WEBHOOK = "${{ secrets.SLACK_HOOKS_ENDPOINT_PROD }}"
           SLACK_CHANNEL = "#alerts-prod"
-          BODY = f"@releases :rotating_light: Failed to deploy whisthq `FFmpeg macOS (ARM64)` Shared Library to AWS S3, investigate immediately :rotating_light: (<https://github.com/whisthq/whist/actions/runs/${{ github.run_id }} | see logs>)"
+          BODY = f"@releases :rotating_light: Failed to deploy whisthq `FFmpeg macOS (ARM64)` Shared Library to AWS S3, investigate immediately :rotating_light: (<https://github.com/whisthq/FFmpeg/actions/runs/${{ github.run_id }} | see logs>)"
           slack_post(slack_webhook=SLACK_WEBHOOK, channel=SLACK_CHANNEL, body=BODY)
 
   #######################################################################################
@@ -622,5 +622,5 @@ jobs:
           SLACK_WEBHOOK = "${{ secrets.SLACK_HOOKS_ENDPOINT_PROD }}"
           SLACK_CHANNEL = "#alerts-prod"
           TITLE = ":ffmpeg: Whist FFmpeg Shared Libraries Deployed :ffmpeg:"
-          BODY = f"Whist `FFmpeg` Shared Libraries deployed to Production via upload to AWS S3 (<https://github.com/whisthq/whist/actions/runs/${{ github.run_id }} | see logs>)"
+          BODY = f"Whist `FFmpeg` Shared Libraries deployed to Production via upload to AWS S3 (<https://github.com/whisthq/FFmpeg/actions/runs/${{ github.run_id }} | see logs>)"
           slack_post(slack_webhook=SLACK_WEBHOOK, channel=SLACK_CHANNEL, title=TITLE, body=BODY)
