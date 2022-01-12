@@ -29,9 +29,9 @@ jobs:
         config:
           - name: "Windows"
             os: windows-2019 # Same OS as Windows 10
-          - name: "macOS (X64)"
+          - name: "macOS (x64)"
             os: macos-10.15 # Xcode and Homebrew come preinstalled
-          - name: "Linux Ubuntu"
+          - name: "Ubuntu Linux"
             os: ubuntu-20.04
 
     env:
@@ -49,7 +49,7 @@ jobs:
     steps:
       ################################# CONFIG STEPS START ##############################
 
-      - name: On macOS and Linux Ubuntu, Checkout this Git Repository Directly
+      - name: On macOS and Ubuntu Linux, Checkout this Git Repository Directly
         if: runner.os == 'macOS' || runner.os == 'Linux'
         uses: actions/checkout@v2
 
@@ -143,6 +143,9 @@ jobs:
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
         if: runner.os == 'macOS'
+        env:
+          CFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CXXFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         run: |
           ./configure \
           --cc=/usr/bin/clang \
@@ -167,7 +170,7 @@ jobs:
           && make -j
 
       ###################################################################################
-      ############################# LINUX UBUNTU STEPS START ############################
+      ############################# Ubuntu Linux STEPS START ############################
 
       - name: On Linux, Build FFmpeg through Docker
         if: runner.os == 'Linux'
@@ -441,9 +444,9 @@ jobs:
   #######################################################################################
   #######################################################################################
 
-  # Build and publish FFmpeg targeting ARM64 systems (via self-hosted MacStadium M1 runner)
+  # Build and publish FFmpeg targeting arm64 systems (via self-hosted MacStadium M1 runner)
   build-and-publish-whist-ffmpeg-arm64:
-    name: "macOS (ARM64)"
+    name: "macOS (arm64)"
     runs-on: [self-hosted, macOS, ARM64]
     defaults:
       run:
@@ -505,6 +508,9 @@ jobs:
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       # NOTE: we manually specify --arch=arm64 (shows up as aarch64 in FFmpeg logs)
       - name: On macOS, Configure and Make FFmpeg
+        env:
+          CFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CXXFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         run: |
           ./configure \
           --cc=/usr/bin/clang \
