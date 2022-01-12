@@ -144,8 +144,8 @@ jobs:
       - name: On macOS, Configure and Make FFmpeg
         if: runner.os == 'macOS'
         env:
-          CFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          CXXFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CXXFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         run: |
           ./configure \
           --cc=/usr/bin/clang \
@@ -509,8 +509,8 @@ jobs:
       # NOTE: we manually specify --arch=arm64 (shows up as aarch64 in FFmpeg logs)
       - name: On macOS, Configure and Make FFmpeg
         env:
-          CFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          CXXFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+          CXXFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         run: |
           ./configure \
           --cc=/usr/bin/clang \
