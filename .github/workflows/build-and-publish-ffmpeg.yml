@@ -168,7 +168,6 @@ jobs:
             --disable-static \
             && make -j
           elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
-            # NOTE: we manually specify --arch=arm64 (shows up as aarch64 in FFmpeg logs)
             ./configure \
             --cc=/usr/bin/clang \
             --enable-cross-compile \
@@ -176,8 +175,8 @@ jobs:
             --arch=arm64 \
             --prefix=@loader_path \
             --libdir=@loader_path \
-            --extra-cflags="-O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
-            --extra-cxxflags="-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cxxflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --extra-ldflags="-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --enable-gpl \
             --enable-nonfree \
