@@ -6,7 +6,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install essentials
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean
 RUN apt-get -y install apt-utils build-essential autoconf automake libtool git pkg-config yasm
-RUN apt-get -y install frei0r-plugins-dev
 RUN apt-get -y install libopus-dev
 
 # Install Intel MediaSDK, needed for libmfx (QSV)
@@ -40,8 +39,7 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/intel/mediasdk/lib64"
 ENV PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/opt/intel/mediasdk/lib64/pkgconfig"
 
 # Install FFmpeg dependencies
-RUN apt-get -y install libopencore-amrnb-dev libopencore-amrwb-dev libvo-amrwbenc-dev
-RUN apt-get -y install libx264-dev libx265-dev mesa-common-dev nvidia-cuda-toolkit
+RUN apt-get -y install mesa-common-dev nvidia-cuda-toolkit
 
 # Install Nvidia Codec Headers
 RUN env

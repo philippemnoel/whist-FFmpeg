@@ -137,7 +137,7 @@ jobs:
 
       - name: On macOS, Install FFmpeg macOS Dependencies & macdylibbundler for packaging
         if: runner.os == 'macOS'
-        run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm yasm dylibbundler
+        run: brew install automake git libtool sdl shtool wget xvid nasm yasm dylibbundler
 
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
