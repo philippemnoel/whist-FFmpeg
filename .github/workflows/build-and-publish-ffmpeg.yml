@@ -137,7 +137,7 @@ jobs:
 
       - name: On macOS, Install FFmpeg macOS Dependencies & macdylibbundler for packaging
         if: runner.os == 'macOS'
-        run: brew install automake git libtool sdl shtool wget xvid nasm yasm dylibbundler
+        run: brew install automake git libtool sdl2 shtool wget nasm dylibbundler
 
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
@@ -151,7 +151,6 @@ jobs:
             --extra-cflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --extra-cxxflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --extra-ldflags="-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
-            --enable-opengl \
             --enable-libopus \
             --enable-pthreads \
             --enable-shared \
@@ -173,7 +172,6 @@ jobs:
             --extra-cflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --extra-cxxflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --extra-ldflags="-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
-            --enable-opengl \
             --enable-libopus \
             --enable-pthreads \
             --enable-shared \

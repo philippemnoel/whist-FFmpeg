@@ -10,7 +10,6 @@ cd FFmpeg
 --disable-doc \
 --disable-debug \
 --disable-sdl2 \
---enable-opengl \
 --enable-libopus \
 --enable-cuda-nvcc \
 --enable-nvenc \
