@@ -143,14 +143,14 @@ jobs:
       - name: On macOS, Configure and Make FFmpeg
         if: runner.os == 'macOS'
         run: |
-          if [[ "${{ matrix.config.name }}" == "macOS (x64) "]]; then
+          if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
             ./configure \
             --cc=/usr/bin/clang \
             --prefix=@loader_path \
             --libdir=@loader_path \
-            --extra-cflags=-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
-            --extra-cxxflags=-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
-            --extra-ldflags=-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+            --extra-cflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cxxflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-ldflags="-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --enable-gpl \
             --enable-nonfree \
             --enable-version3 \
@@ -167,18 +167,18 @@ jobs:
             --disable-sdl2 \
             --disable-static \
             && make -j
-          elif [[ "${{ matrix.config.name }}" == "macOS (arm64) "]]; then
+          elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
             # NOTE: we manually specify --arch=arm64 (shows up as aarch64 in FFmpeg logs)
             ./configure \
             --cc=/usr/bin/clang \
             --enable-cross-compile \
-            --arch=arm64 \ # This might be wrong, maybe --target-os is what is required, not clear
-            --target-os=aarch64 \ # I think this is Apple Arch64, I need to confirm
+            --target-os=darwin \
+            --arch=arm64 \
             --prefix=@loader_path \
             --libdir=@loader_path \
-            --extra-cflags=-O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
-            --extra-cxxflags=-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
-            --extra-ldflags=-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+            --extra-cflags="-O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cxxflags="-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-ldflags="-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
             --enable-gpl \
             --enable-nonfree \
             --enable-version3 \
@@ -196,22 +196,9 @@ jobs:
             --disable-static \
             && make -j
           else
-            echo ""
+            echo "Unsupported compilation attempt on macOS"
             exit
           fi
-
-      # Is there anything of value we can do with those?
-      # Advanced options (experts only):
-      #   --malloc-prefix=PREFIX   prefix malloc and related names with PREFIX
-      #   --custom-allocator=NAME  use a supported custom allocator
-      #   --disable-symver         disable symbol versioning
-      #   --enable-hardcoded-tables use hardcoded tables instead of runtime generation
-      #   --disable-safe-bitstream-reader
-      #                            disable buffer boundary checking in bitreaders
-      #                            (faster, but may crash)
-      #   --sws-max-filter-size=N  the max filter size swscale uses [256]
-      #   --enable-lto             use link-time optimization
-      #   --enable-pic             build position-independent code
 
       ###################################################################################
       ############################# Ubuntu Linux STEPS START ############################
@@ -296,12 +283,11 @@ jobs:
               tar -zcvf ${{ env.macos-x64-tar-name }} ${{ env.macos-build-folder }}
               aws s3 cp ${{ env.macos-x64-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-x64-tar-name }}
             elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
-
               # tar and upload
               tar -zcvf ${{ env.macos-arm64-tar-name }} ${{ env.macos-build-folder }}
               aws s3 cp ${{ env.macos-arm64-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-arm64-tar-name }}
             else
-              echo ""
+              echo "Tried to tar and upload to S3 for an unsupported OS"
               exit
             fi
           fi
