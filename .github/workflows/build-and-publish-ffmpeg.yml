@@ -137,7 +137,7 @@ jobs:
 
       - name: On macOS, Install FFmpeg macOS Dependencies & macdylibbundler for packaging
         if: runner.os == 'macOS'
-        run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm dylibbundler
+        run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm yasm dylibbundler
 
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
@@ -173,6 +173,7 @@ jobs:
             --enable-cross-compile \
             --target-os=darwin \
             --arch=arm64 \
+            --enable-runtime-cpudetect \
             --prefix=@loader_path \
             --libdir=@loader_path \
             --extra-cflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
