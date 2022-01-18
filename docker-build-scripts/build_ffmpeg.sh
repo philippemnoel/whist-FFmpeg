@@ -11,7 +11,6 @@ cd FFmpeg
 --disable-debug \
 --disable-sdl2 \
 --enable-libopus \
---enable-cuda-nvcc \
 --enable-nvenc \
 --enable-libmfx \
 --enable-pthreads \

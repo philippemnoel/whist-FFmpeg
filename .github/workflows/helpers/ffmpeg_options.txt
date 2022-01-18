@@ -104,7 +104,7 @@
 # Full plus options that add shared dependencies
 #--enable-opencl
 #--enable-opengl
---enable-cuda-nvcc
+#--enable-cuda-nvcc
 #--enable-libnpp
 #--enable-libopenh264
 
