@@ -5,23 +5,15 @@
 cd FFmpeg
 ./configure \
 --arch=x86_64 \
---extra-cflags=-O3 \
---enable-gpl \
---enable-nonfree \
---enable-version3 \
+--extra-cflags=-O2 \
 --disable-programs \
 --disable-doc \
 --disable-debug \
 --disable-sdl2 \
---enable-opengl \
---enable-frei0r \
 --enable-libopus \
---enable-libx264 \
---enable-libx265 \
---enable-cuda-nvcc \
 --enable-nvenc \
 --enable-libmfx \
---enable-filter=frei0r \
+--enable-pthreads \
 --enable-filter=scale_cuda \
 --disable-static \
 --enable-shared
