@@ -449,10 +449,6 @@ jobs:
       - name: Checkout Git Repository
         uses: actions/checkout@v2
 
-      - name: Setup Python-based Notifications
-        working-directory: .github/workflows/helpers
-        run: ./notifications/setup_notifications.sh
-
       - name: Install awscli, cmake, gcc, and pkg-config
         run: brew install awscli cmake pkg-config gcc
 
@@ -560,6 +556,11 @@ jobs:
           repository: whisthq/whist
           ref: "dev"
           token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Setup Python-based Notifications
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
+        working-directory: .github/workflows/helpers
+        run: ./notifications/setup_notifications.sh
 
       - name: Notify Slack on Workflow Error (Only on Push/Workflow_dispatch Events)
         if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
