@@ -132,13 +132,9 @@ jobs:
           sudo chown -R `whoami`:admin /usr/local/share
           sudo chown -R `whoami`:admin /usr/local/opt
 
-      - name: On macOS, Install macdylibbundler
-        if: runner.os == 'macOS'
-        run: brew install dylibbundler
-
       - name: On macOS, Install FFmpeg macOS Dependencies
         if: runner.os == 'macOS'
-        run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm
+        run: brew install automake git libtool sdl2 shtool wget nasm dylibbundler
 
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
@@ -152,20 +148,13 @@ jobs:
           --cc=/usr/bin/clang \
           --prefix=@loader_path \
           --libdir=@loader_path \
-          --extra-cflags=-O3 \
-          --enable-gpl \
-          --enable-nonfree \
-          --enable-version3 \
+          --extra-cflags=-O2 \
           --disable-programs \
           --disable-doc \
           --disable-debug \
           --disable-sdl2 \
-          --enable-opengl \
           --enable-libopus \
-          --enable-libx264 \
-          --enable-libx265 \
           --enable-pthreads \
-          --enable-neon \
           --disable-static \
           --enable-shared \
           && make -j
@@ -519,20 +508,15 @@ jobs:
           --arch=arm64 \
           --prefix=@loader_path \
           --libdir=@loader_path \
-          --extra-cflags=-O3 \
-          --enable-gpl \
-          --enable-nonfree \
-          --enable-version3 \
+          --extra-cflags=-O2 \
           --disable-programs \
           --disable-doc \
           --disable-debug \
           --disable-sdl2 \
-          --enable-opengl \
           --enable-libopus \
           --enable-libx264 \
           --enable-libx265 \
           --enable-pthreads \
-          --enable-neon \
           --disable-static \
           --enable-shared \
           && make -j
