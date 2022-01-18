@@ -25,8 +25,8 @@
 --enable-libopus
 #--enable-libvorbis
 #--enable-libvpx
---enable-libx264
---enable-libx265
+#--enable-libx264
+#--enable-libx265
 #--enable-libdav1d
 #--enable-libaom
 --disable-debug
@@ -54,14 +54,14 @@
 #--enable-libxml2
 #--enable-libzimg
 #--enable-libshine
---enable-gpl
+#--enable-gpl
 #--enable-openssl
 #--enable-libtls
 #--enable-avisynth
 #--enable-mbedtls
 #--enable-libxvid
 #--enable-libopenmpt
---enable-version3
+#--enable-version3
 #--enable-librav1e
 #--enable-libsrt
 #--enable-libgsm
@@ -103,13 +103,13 @@
 
 # Full plus options that add shared dependencies
 #--enable-opencl
---enable-opengl
---enable-cuda-nvcc
+#--enable-opengl
+#--enable-cuda-nvcc
 #--enable-libnpp
 #--enable-libopenh264
 
 # Whist-added options
---enable-nonfree
+#--enable-nonfree
 --disable-programs
 --disable-doc 
 --disable-sdl2
