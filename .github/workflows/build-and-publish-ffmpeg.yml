@@ -196,7 +196,6 @@ jobs:
             mv local64/bin-video/avfilter-8.dll ${{ env.windows-build-folder }}/avfilter-8.dll
             mv local64/bin-video/avformat-59.dll ${{ env.windows-build-folder }}/avformat-59.dll
             mv local64/bin-video/avutil-57.dll ${{ env.windows-build-folder }}/avutil-57.dll
-            mv local64/bin-video/postproc-56.dll ${{ env.windows-build-folder }}/postproc-56.dll
             mv local64/bin-video/swresample-4.dll ${{ env.windows-build-folder }}/swresample-4.dll
             mv local64/bin-video/swscale-6.dll ${{ env.windows-build-folder }}/swscale-6.dll
             mv local64/bin-video/avcodec.lib ${{ env.windows-build-folder }}/avcodec.lib
@@ -204,7 +203,6 @@ jobs:
             mv local64/bin-video/avfilter.lib ${{ env.windows-build-folder }}/avfilter.lib
             mv local64/bin-video/avformat.lib ${{ env.windows-build-folder }}/avformat.lib
             mv local64/bin-video/avutil.lib ${{ env.windows-build-folder }}/avutil.lib
-            mv local64/bin-video/postproc.lib ${{ env.windows-build-folder }}/postproc.lib
             mv local64/bin-video/swresample.lib ${{ env.windows-build-folder }}/swresample.lib
             mv local64/bin-video/swscale.lib ${{ env.windows-build-folder }}/swscale.lib
 
@@ -217,7 +215,7 @@ jobs:
             mkdir dylib-bundle-staging
 
             # remember to move the versioned libavcodec.58.dylib, for example, not the libavcodec.dylib
-            mv lib{av{codec,device,filter,format,util},postproc,sw{resample,scale}}/*.*.dylib dylib-bundle-staging
+            mv lib{av{codec,device,filter,format,util},sw{resample,scale}}/*.*.dylib dylib-bundle-staging
 
             # create protocol-compliant lib folder to put patched binaries in
             mkdir ${{ env.macos-build-folder }}
@@ -243,7 +241,7 @@ jobs:
         if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && runner.os == 'macOS' }}
         run: |
           # create protocol-compliant headers folder and subfolders
-          mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libpostproc,libswresample,libswscale}
+          mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libswresample,libswscale}
 
           # move select header files over to tar, only the ones needed
           # libavcodec
@@ -384,12 +382,6 @@ jobs:
           libavutil/xtea.h \
           ${{ env.headers-build-folder }}/libavutil/
 
-          # libpostproc
-          mv \
-          libpostproc/postprocess.h \
-          libpostproc/version.h \
-          ${{ env.headers-build-folder }}/libpostproc/
-
           # libswresample
           mv \
           libswresample/swresample.h \
@@ -413,7 +405,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: whisthq/whist
-          ref: 'dev'
+          ref: "dev"
           token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
 
       - name: Setup Python-based Notifications
@@ -456,6 +448,10 @@ jobs:
 
       - name: Checkout Git Repository
         uses: actions/checkout@v2
+
+      - name: Setup Python-based Notifications
+        working-directory: .github/workflows/helpers
+        run: ./notifications/setup_notifications.sh
 
       - name: Install awscli, cmake, gcc, and pkg-config
         run: brew install awscli cmake pkg-config gcc
@@ -531,7 +527,7 @@ jobs:
           mkdir dylib-bundle-staging
 
           # remember to move the versioned libavcodec.58.dylib, for example, not the libavcodec.dylib
-          mv lib{av{codec,device,filter,format,util},postproc,sw{resample,scale}}/*.*.dylib dylib-bundle-staging
+          mv lib{av{codec,device,filter,format,util},sw{resample,scale}}/*.*.dylib dylib-bundle-staging
 
           # create protocol-compliant lib folder to put patched binaries in
           mkdir ${{ env.macos-build-folder }}
@@ -562,13 +558,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: whisthq/whist
-          ref: 'dev'
+          ref: "dev"
           token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
-
-      - name: Setup Python-based Notifications
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-        working-directory: .github/workflows/helpers
-        run: ./notifications/setup_notifications.sh
 
       - name: Notify Slack on Workflow Error (Only on Push/Workflow_dispatch Events)
         if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
@@ -598,7 +589,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: whisthq/whist
-          ref: 'dev'
+          ref: "dev"
           token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
 
       - name: Setup Python-based Notifications
