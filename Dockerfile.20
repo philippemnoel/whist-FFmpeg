@@ -38,7 +38,7 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/intel/mediasdk/lib64"
 ENV PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/opt/intel/mediasdk/lib64/pkgconfig"
 
 # Install FFmpeg dependencies
-RUN apt-get -y install libopus-dev mesa-common-dev nvidia-cuda-toolkit
+RUN apt-get -y install libx264-dev libx265-dev libopus-dev mesa-common-dev nvidia-cuda-toolkit
 
 # Install Nvidia Codec Headers
 RUN env
