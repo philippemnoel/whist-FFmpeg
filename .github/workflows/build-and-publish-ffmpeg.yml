@@ -32,7 +32,7 @@ jobs:
           - name: "macOS (x64)"
             os: macos-11 # Xcode and Homebrew come preinstalled
           - name: "macOS (arm64)"
-            os: macos-latest # Xcode and Homebrew come preinstalled
+            os: macos-11 # Xcode and Homebrew come preinstalled
           - name: "Ubuntu Linux"
             os: ubuntu-20.04
 
@@ -141,12 +141,8 @@ jobs:
           # Install dependencies needed for both x64 and arm64 builds
           brew install automake git libtool shtool wget nasm dylibbundler
 
-
           # Install opus for x64 and arm64
-
           if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
-
-
             brew install opus
           elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
             echo "Starting cross-compiling libopus for arm64 on macOS..."
