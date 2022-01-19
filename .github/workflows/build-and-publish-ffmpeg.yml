@@ -127,6 +127,12 @@ jobs:
       ###################################################################################
       ################################# MACOS STEPS START ###############################
 
+      - name: Install macOS Codesigning Certificates on macOS GHA Machine
+        uses: apple-actions/import-codesign-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
+
       # On Intel silicon, Homebrew installs libs to /usr/local/*
       - name: On macOS, Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
         if: runner.os == 'macOS'
@@ -288,7 +294,8 @@ jobs:
             chmod +x ${{ env.macos-build-folder }}/*.dylib
 
             # Apple requires all executables to be signed starting with M1 arm64, and the dylibbundler invalidates the
-            # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything
+            # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything. This is not an issue for
+            # clientapp deployment, where we re-sign everything, but is necessary for protocol development on M1 macOS.
             codesign -f -v -s "Fractal Computers, Inc." ${{ env.macos-build-folder }}/*.dylib
 
             if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
