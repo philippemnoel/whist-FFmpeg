@@ -19,8 +19,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Build and publish FFmpeg targeting Intel X86_64 systems (via GHA runners)
-  build-and-publish-whist-ffmpeg-x64:
+  # Build and publish FFmpeg
+  build-and-publish-whist-ffmpeg:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
@@ -31,13 +31,16 @@ jobs:
             os: windows-2019 # Same OS as Windows 10
           - name: "macOS (x64)"
             os: macos-11 # Xcode and Homebrew come preinstalled
+          - name: "macOS (arm64)"
+            os: macos-11 # Xcode and Homebrew come preinstalled
           - name: "Ubuntu Linux"
             os: ubuntu-20.04
 
     env:
       windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
       windows-build-folder: Windows
-      macos-tar-name: fractal-macos-x64-ffmpeg-shared-lib.tar.gz
+      macos-x64-tar-name: fractal-macos-x64-ffmpeg-shared-lib.tar.gz
+      macos-arm64-tar-name: fractal-macos-arm64-ffmpeg-shared-lib.tar.gz
       macos-build-folder: Darwin
       linux-tar-name: fractal-linux-ffmpeg-shared-lib.tar.gz
       linux-build-folder: Linux
@@ -132,32 +135,85 @@ jobs:
           sudo chown -R `whoami`:admin /usr/local/share
           sudo chown -R `whoami`:admin /usr/local/opt
 
-      - name: On macOS, Install FFmpeg macOS Dependencies
+      - name: On macOS, Install FFmpeg macOS Dependencies & macdylibbundler for packaging
         if: runner.os == 'macOS'
-        run: brew install automake git libtool sdl2 shtool wget nasm dylibbundler
+        run: |
+          # Install dependencies needed for both x64 and arm64 builds
+          brew install automake git libtool shtool wget nasm dylibbundler
+
+          # Install opus for x64 and arm64
+          if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
+            brew install opus
+          elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
+            echo "Starting cross-compiling libopus for arm64 on macOS..."
+
+            # Download libopus
+            VERSION="1.3.1"
+            echo "Downloading opus-${VERSION}.tar.gz"
+            curl -L "http://downloads.xiph.org/releases/opus/opus-${VERSION}.tar.gz" | tar xz
+            cd "opus-${VERSION}"
+
+            # Configure, build, and install libopus
+            FLAGS="-arch arm64 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+
+            ./configure \
+              --disable-dependency-tracking \
+              --disable-doc \
+              --host=arm-apple-darwin \
+              CFLAGS="${FLAGS}" \
+              LDFLAGS="${FLAGS}" \
+              CPPFLAGS="${FLAGS}" \
+            && make -j install
+
+            echo "Successfully cross-compiled libopus for arm64 on macOS..."
+          fi
 
       # We disable command-line programs and SDL2 since we have our own SDL2 static build
       - name: On macOS, Configure and Make FFmpeg
         if: runner.os == 'macOS'
-        env:
-          CFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          CXXFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          LDFLAGS: "-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         run: |
-          ./configure \
-          --cc=/usr/bin/clang \
-          --prefix=@loader_path \
-          --libdir=@loader_path \
-          --extra-cflags=-O2 \
-          --disable-programs \
-          --disable-doc \
-          --disable-debug \
-          --disable-sdl2 \
-          --enable-libopus \
-          --enable-pthreads \
-          --disable-static \
-          --enable-shared \
-          && make -j
+          if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
+            ./configure \
+            --cc=/usr/bin/clang \
+            --prefix=@loader_path \
+            --libdir=@loader_path \
+            --extra-cflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cxxflags="-O2 -mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-ldflags="-mmacosx-version-min=10.13 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --enable-libopus \
+            --enable-pthreads \
+            --enable-shared \
+            --disable-programs \
+            --disable-doc \
+            --disable-debug \
+            --disable-sdl2 \
+            --disable-static \
+            && make -j
+          elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
+            ./configure \
+            --cc=/usr/bin/clang \
+            --enable-cross-compile \
+            --target-os=darwin \
+            --arch=arm64 \
+            --pkg-config=pkg-config \
+            --prefix=@loader_path \
+            --libdir=@loader_path \
+            --extra-cflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-cxxflags="-target arm64-apple-macos11 -O2 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --extra-ldflags="-target arm64-apple-macos11 -mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk" \
+            --enable-libopus \
+            --enable-pthreads \
+            --enable-shared \
+            --disable-programs \
+            --disable-doc \
+            --disable-debug \
+            --disable-sdl2 \
+            --disable-static \
+            && make -j
+          else
+            echo "Unsupported compilation attempt on macOS"
+            exit
+          fi
 
       ###################################################################################
       ############################# Ubuntu Linux STEPS START ############################
@@ -231,14 +287,27 @@ jobs:
             mv dylib-bundle-staging/*.dylib ${{ env.macos-build-folder }}
             chmod +x ${{ env.macos-build-folder }}/*.dylib
 
-            # tar and upload
-            tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
-            aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
+            # Apple requires all executables to be signed starting with M1 arm64, and the dylibbundler invalidates the
+            # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything
+            codesign -f -v -s "Fractal Computers, Inc." ${{ env.macos-build-folder }}/*.dylib
+
+            if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
+              # tar and upload
+              tar -zcvf ${{ env.macos-x64-tar-name }} ${{ env.macos-build-folder }}
+              aws s3 cp ${{ env.macos-x64-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-x64-tar-name }}
+            elif [[ "${{ matrix.config.name }}" == "macOS (arm64)" ]]; then
+              # tar and upload
+              tar -zcvf ${{ env.macos-arm64-tar-name }} ${{ env.macos-build-folder }}
+              aws s3 cp ${{ env.macos-arm64-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-arm64-tar-name }}
+            else
+              echo "Tried to tar and upload to S3 for an unsupported OS"
+              exit
+            fi
           fi
 
       # Only upload headers once, as they are identical on every OS (on macOS sice version headers don't generate on Linux)
       - name: Tar FFmpeg headers and Upload to AWS S3 (Only on Push Events)
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && runner.os == 'macOS' }}
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.config.name == 'macOS (x64)' }}
         run: |
           # create protocol-compliant headers folder and subfolders
           mkdir -p ${{ env.headers-build-folder }}/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libswresample,libswscale}
@@ -426,164 +495,11 @@ jobs:
   #######################################################################################
   #######################################################################################
 
-  # Build and publish FFmpeg targeting arm64 systems (via self-hosted MacStadium M1 runner)
-  build-and-publish-whist-ffmpeg-arm64:
-    name: "macOS (arm64)"
-    runs-on: [self-hosted, macOS, ARM64]
-    defaults:
-      run:
-        shell: "/usr/bin/arch -arch arm64e /bin/bash {0}"
-
-    env:
-      macos-tar-name: fractal-macos-arm64-ffmpeg-shared-lib.tar.gz
-      macos-build-folder: Darwin
-      s3-bucket-region: us-east-1
-      s3-bucket-uri: s3://fractal-protocol-shared-libs
-
-    steps:
-      ################################## CONFIG STEPS START #############################
-
-      - name: Check M1 Runner Status
-        run: clang --version && uname -a
-
-      - name: Checkout Git Repository
-        uses: actions/checkout@v2
-
-      - name: Install awscli, cmake, gcc, and pkg-config
-        run: brew install awscli cmake pkg-config gcc
-
-      - name: Configure AWS S3 CLI
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_GITHUB_ACTIONS_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_GITHUB_ACTIONS_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.s3-bucket-region }}
-
-      ###################################################################################
-      ################################# MACOS STEPS START ###############################
-
-      # Apple requires all executables starting with M1 ARM64 to be signed, so we need to
-      # import our codesigning certificate to re-sign FFmpeg dependencies we bundle
-      #
-      # NOTE: This step is commented out because we run on a self-hosted runner (so the environment
-      # persists between runs, and it will error out saying that this keychain already exists). It
-      # is kept here for reference, and in case you need to configure a new keychain certificate
-      # - name: Install macOS Codesigning Certificates on macOS GHA Machine
-      #    uses: apple-actions/import-codesign-certs@v1
-      #    with:
-      #      p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
-      #      p12-password: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
-
-      # On Apple silicon, Homebrew installs libs to /opt/homebrew/*
-      - name: Explicitly Set Proper Homebrew Folder Permissions for Linking FFmpeg Dependencies
-        run: |
-          chown -R `whoami`:admin /opt/homebrew/bin
-          chown -R `whoami`:admin /opt/homebrew/share
-          chown -R `whoami`:admin /opt/homebrew/opt
-
-      - name: Install macdylibbundler
-        run: brew install dylibbundler
-
-      - name: Install FFmpeg macOS Dependencies and Dylib bundling tool
-        run: brew install automake fdk-aac git libtool sdl shtool wget x264 x265 xvid nasm dylibbundler
-
-      # We disable command-line programs and SDL2 since we have our own SDL2 static build
-      # NOTE: we manually specify --arch=arm64 (shows up as aarch64 in FFmpeg logs)
-      - name: On macOS, Configure and Make FFmpeg
-        env:
-          CFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          CXXFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-          LDFLAGS: "-mmacosx-version-min=11.0 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-        run: |
-          ./configure \
-          --cc=/usr/bin/clang \
-          --arch=arm64 \
-          --prefix=@loader_path \
-          --libdir=@loader_path \
-          --extra-cflags=-O2 \
-          --disable-programs \
-          --disable-doc \
-          --disable-debug \
-          --disable-sdl2 \
-          --enable-libopus \
-          --enable-pthreads \
-          --disable-static \
-          --enable-shared \
-          && make -j
-
-      ###################################################################################
-      ################################# PUBLISH STEPS START #############################
-
-      # Only publish to AWS S3 on Push/Workflow_dispatch events (code merged into `main`)
-      - name: Tar FFmpeg Libs and Upload to AWS S3 (Only on Push Events)
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-        run: |
-          # create staging folder for our dylib bundler to use
-          # (important since the bundler expects to resolve between these binaries)
-          mkdir dylib-bundle-staging
-
-          # remember to move the versioned libavcodec.58.dylib, for example, not the libavcodec.dylib
-          mv lib{av{codec,device,filter,format,util},sw{resample,scale}}/*.*.dylib dylib-bundle-staging
-
-          # create protocol-compliant lib folder to put patched binaries in
-          mkdir ${{ env.macos-build-folder }}
-
-          # mark FFmpeg dependencies (fdk-aac, x264, x265, etc.) as executable and change their linking to work with
-          # our own FFmpeg libs within the Whist Protocol folder structure
-          # note that printf on bash is /usr/bin/printf, which handles the -x poorly by default
-          dylibbundler \
-            $(printf -- '-x %s ' $(ls dylib-bundle-staging/*.dylib)) \
-            -d ${{ env.macos-build-folder }} \
-            -p "@loader_path" \
-            -b
-          mv dylib-bundle-staging/*.dylib ${{ env.macos-build-folder }}
-          chmod +x ${{ env.macos-build-folder }}/*.dylib
-
-          # Apple requires all executables to be signed starting with M1 ARM64, and the dylibbundler invalidates the
-          # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything
-          codesign -f -v -s "Fractal Computers, Inc." ${{ env.macos-build-folder }}/*.dylib
-
-          # tar and upload
-          tar -zcvf ${{ env.macos-tar-name }} ${{ env.macos-build-folder }}
-          aws s3 cp ${{ env.macos-tar-name }} ${{ env.s3-bucket-uri }}/${{ env.macos-tar-name }}
-
-      ###################################################################################
-
-      - name: Checkout Whist Git Repository
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-        uses: actions/checkout@v2
-        with:
-          repository: whisthq/whist
-          ref: "dev"
-          token: ${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}
-
-      - name: Setup Python-based Notifications
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-        working-directory: .github/workflows/helpers
-        run: ./notifications/setup_notifications.sh
-
-      - name: Notify Slack on Workflow Error (Only on Push/Workflow_dispatch Events)
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-        shell: python3 {0}
-        run: |
-          from notifications.slack_bot import slack_post
-          SLACK_WEBHOOK = "${{ secrets.SLACK_HOOKS_ENDPOINT_PROD }}"
-          SLACK_CHANNEL = "#alerts-prod"
-          BODY = f"@releases :rotating_light: Failed to deploy whisthq `FFmpeg macOS (ARM64)` Shared Library to AWS S3, investigate immediately :rotating_light: (<https://github.com/whisthq/FFmpeg/actions/runs/${{ github.run_id }} | see logs>)"
-          slack_post(slack_webhook=SLACK_WEBHOOK, channel=SLACK_CHANNEL, body=BODY)
-
-  #######################################################################################
-  #######################################################################################
-
   # Notify us in Slack if all jobs from this workflow succeed
   notify-slack:
     name: Notify Slack
     runs-on: ubuntu-20.04
-    needs:
-      [
-        build-and-publish-whist-ffmpeg-x64,
-        build-and-publish-whist-ffmpeg-arm64,
-      ]
+    needs: [build-and-publish-whist-ffmpeg]
     if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && success() }}
     steps:
       - name: Checkout Whist Git Repository
