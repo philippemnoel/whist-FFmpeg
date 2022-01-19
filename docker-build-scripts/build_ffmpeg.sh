@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Configure and Build FFmpeg on Linux Ubuntu with relevant flags to build shared libs. We use `--enable-nonfree` and 
+# Configure and Build FFmpeg on Linux Ubuntu with relevant flags to build shared libs. We use `--enable-nonfree` and
 # `--enable-gpl`, since they are required by `--enable-cuda-nvcc`, `--enable-libx264`, and `--enable-libx265`, which
 # is required for the FFmpeg software encoder tests we run. This is compliant with the license since we don't distribute
 # a Linux client, and only install those libs on our servers.
@@ -28,5 +28,5 @@ cd FFmpeg
 
 # Build FFmpeg and move static/shared libs
 make -j && rm -rf linux-build && mkdir linux-build
-find ./ -type f \( -iname \*.so -o -iname \*.a \) | xargs -I % cp % linux-build/ 
+find ./ -type f \( -iname \*.so -o -iname \*.a \) | xargs -I % cp % linux-build/
 make install && ldconfig
