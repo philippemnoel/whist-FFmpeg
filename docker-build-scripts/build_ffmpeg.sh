@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Configure and Build FFmpeg on Linux Ubuntu with relevant flags to build shared libs. We use `--enable-nonfree`, since 
-# it is required by `--enable-cuda-nvcc`, which is required for the FFmpeg Nvidia encoder. This is compliant with the
-# license since we don't distribute a Linux client, and only install those libs on our servers.
+# it is required by `--enable-cuda-nvcc`, `--enable-libx264`, and `--enable-libx265`, which is required for the FFmpeg
+# software encoder tests we run. This is compliant with the license since we don't distribute a Linux client, and only
+# install those libs on our servers.
 
 cd FFmpeg
 ./configure \
@@ -14,6 +15,8 @@ cd FFmpeg
 --disable-sdl2 \
 --enable-nonfree \
 --enable-cuda-nvcc \
+--enable-libx264 \
+--enable-libx265 \
 --enable-libopus \
 --enable-nvenc \
 --enable-libmfx \
