@@ -37,14 +37,14 @@ jobs:
             os: ubuntu-20.04
 
     env:
-      windows-tar-name: fractal-windows-ffmpeg-shared-lib.tar.gz
+      windows-tar-name: whist-windows-ffmpeg-shared-lib.tar.gz
       windows-build-folder: Windows
-      macos-x64-tar-name: fractal-macos-x64-ffmpeg-shared-lib.tar.gz
-      macos-arm64-tar-name: fractal-macos-arm64-ffmpeg-shared-lib.tar.gz
+      macos-x64-tar-name: whist-macos-x64-ffmpeg-shared-lib.tar.gz
+      macos-arm64-tar-name: whist-macos-arm64-ffmpeg-shared-lib.tar.gz
       macos-build-folder: Darwin
-      linux-tar-name: fractal-linux-ffmpeg-shared-lib.tar.gz
+      linux-tar-name: whist-linux-ffmpeg-shared-lib.tar.gz
       linux-build-folder: Linux
-      headers-tar-name: fractal-ffmpeg-headers.tar.gz
+      headers-tar-name: whist-ffmpeg-headers.tar.gz
       headers-build-folder: include
       s3-bucket-region: us-east-1
       s3-bucket-uri: s3://fractal-protocol-shared-libs
@@ -297,7 +297,7 @@ jobs:
             # Apple requires all executables to be signed starting with M1 arm64, and the dylibbundler invalidates the
             # existing Homebrew signature for the FFmpeg dependencies, so we re-sign everything. This is not an issue for
             # clientapp deployment, where we re-sign everything, but is necessary for protocol development on M1 macOS.
-            codesign -f -v -s "Fractal Computers, Inc." ${{ env.macos-build-folder }}/*.dylib
+            codesign -f -v -s "Whist Technologies, Inc." ${{ env.macos-build-folder }}/*.dylib
 
             if [[ "${{ matrix.config.name }}" == "macOS (x64)" ]]; then
               # tar and upload
