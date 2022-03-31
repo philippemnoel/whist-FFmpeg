@@ -64,8 +64,9 @@ jobs:
           REM first, clone whisthq/media-autobuild_suite to C:\media-autobuild_suite
           git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/whisthq/media-autobuild_suite.git" C:\media-autobuild_suite
 
-          REM then, clone whisthq/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
-          git clone "https://${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}@github.com/whisthq/ffmpeg.git" C:\media-autobuild_suite\build\ffmpeg
+          REM then, clone FFmpeg/FFmpeg to C:\media-autobuild_suite\build\ffmpeg
+          REM note that Windows (and only Windows) is on upstream FFmpeg -- we need to fix so that this is true for Linux and macOS too
+          git clone "https://github.com/FFmpeg/FFmpeg.git" C:\media-autobuild_suite\build\ffmpeg
 
       - name: Configure AWS S3 CLI
         uses: aws-actions/configure-aws-credentials@v1
@@ -122,7 +123,7 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: C:\media-autobuild_suite
         shell: cmd
-        run: .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
+        run: .\media-autobuild_suite.bat
 
       ###################################################################################
       ################################# MACOS STEPS START ###############################
