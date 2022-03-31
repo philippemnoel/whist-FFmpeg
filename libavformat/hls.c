@@ -817,10 +817,16 @@ static int parse_playlist(HLSContext *c, const char *url,
                                &info);
             new_rendition(c, &info, url);
         } else if (av_strstart(line, "#EXT-X-TARGETDURATION:", &ptr)) {
+            int64_t t;
             ret = ensure_playlist(c, &pls, url);
             if (ret < 0)
                 goto fail;
-            pls->target_duration = strtoll(ptr, NULL, 10) * AV_TIME_BASE;
+            t = strtoll(ptr, NULL, 10);
+            if (t < 0 || t >= INT64_MAX / AV_TIME_BASE) {
+                ret = AVERROR_INVALIDDATA;
+                goto fail;
+            }
+            pls->target_duration = t * AV_TIME_BASE;
         } else if (av_strstart(line, "#EXT-X-MEDIA-SEQUENCE:", &ptr)) {
             uint64_t seq_no;
             ret = ensure_playlist(c, &pls, url);
@@ -914,7 +920,7 @@ static int parse_playlist(HLSContext *c, const char *url,
                 if (has_iv) {
                     memcpy(seg->iv, iv, sizeof(iv));
                 } else {
-                    int64_t seq = pls->start_seq_no + pls->n_segments;
+                    uint64_t seq = pls->start_seq_no + (uint64_t)pls->n_segments;
                     memset(seg->iv, 0, sizeof(seg->iv));
                     AV_WB64(seg->iv + 8, seq);
                 }
@@ -1284,7 +1290,6 @@ static int open_input(HLSContext *c, struct playlist *pls, struct segment *seg, 
         char iv[33], key[33], url[MAX_URL_SIZE];
         ff_data_to_hex(iv, seg->iv, sizeof(seg->iv), 0);
         ff_data_to_hex(key, pls->key, sizeof(pls->key), 0);
-        iv[32] = key[32] = '\0';
         if (strstr(seg->url, "://"))
             snprintf(url, sizeof(url), "crypto+%s", seg->url);
         else
@@ -1718,28 +1723,6 @@ static int64_t select_cur_seq_no(HLSContext *c, struct playlist *pls)
     return pls->start_seq_no;
 }
 
-static int save_avio_options(AVFormatContext *s)
-{
-    HLSContext *c = s->priv_data;
-    static const char * const opts[] = {
-        "headers", "http_proxy", "user_agent", "cookies", "referer", "rw_timeout", "icy", NULL };
-    const char * const * opt = opts;
-    uint8_t *buf;
-    int ret = 0;
-
-    while (*opt) {
-        if (av_opt_get(s->pb, *opt, AV_OPT_SEARCH_CHILDREN | AV_OPT_ALLOW_NULL, &buf) >= 0) {
-            ret = av_dict_set(&c->avio_opts, *opt, buf,
-                              AV_DICT_DONT_STRDUP_VAL);
-            if (ret < 0)
-                return ret;
-        }
-        opt++;
-    }
-
-    return ret;
-}
-
 static int nested_io_open(AVFormatContext *s, AVIOContext **pb, const char *url,
                           int flags, AVDictionary **opts)
 {
@@ -1885,7 +1868,7 @@ static int hls_read_header(AVFormatContext *s)
     c->first_timestamp = AV_NOPTS_VALUE;
     c->cur_timestamp = AV_NOPTS_VALUE;
 
-    if ((ret = save_avio_options(s)) < 0)
+    if ((ret = ffio_copy_url_options(s->pb, &c->avio_opts)) < 0)
         return ret;
 
     /* XXX: Some HLS servers don't like being sent the range header,
@@ -2074,7 +2057,6 @@ static int hls_read_header(AVFormatContext *s)
             if (strstr(in_fmt->name, "mov")) {
                 char key[33];
                 ff_data_to_hex(key, pls->key, sizeof(pls->key), 0);
-                key[32] = '\0';
                 av_dict_set(&options, "decryption_key", key, AV_OPT_FLAG_DECODING_PARAM);
             } else if (!c->crypto_ctx.aes_ctx) {
                 c->crypto_ctx.aes_ctx = av_aes_alloc();

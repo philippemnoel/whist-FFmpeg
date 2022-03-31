@@ -90,6 +90,7 @@ int ff_videotoolbox_buffer_copy(VTContext *vtctx,
 
 static int videotoolbox_postproc_frame(void *avctx, AVFrame *frame)
 {
+    int ret;
     VTHWFrame *ref = (VTHWFrame *)frame->buf[0]->data;
 
     if (!ref->pixbuf) {
@@ -102,6 +103,9 @@ static int videotoolbox_postproc_frame(void *avctx, AVFrame *frame)
     frame->crop_left = 0;
     frame->crop_top = 0;
     frame->crop_bottom = 0;
+
+    if ((ret = av_vt_pixbuf_set_attachments(avctx, ref->pixbuf, frame)) < 0)
+        return ret;
 
     frame->data[3] = (uint8_t*)ref->pixbuf;
 
@@ -821,11 +825,13 @@ static CFDictionaryRef videotoolbox_decoder_config_create(CMVideoCodecType codec
         if (data)
             CFDictionarySetValue(avc_info, CFSTR("hvcC"), data);
         break;
+#if CONFIG_VP9_VIDEOTOOLBOX_HWACCEL
     case kCMVideoCodecType_VP9 :
         data = ff_videotoolbox_vpcc_extradata_create(avctx);
         if (data)
             CFDictionarySetValue(avc_info, CFSTR("vpcC"), data);
         break;
+#endif
     default:
         break;
     }
@@ -895,7 +901,7 @@ static int videotoolbox_start(AVCodecContext *avctx)
         break;
     }
 
-#if defined(MAC_OS_X_VERSION_10_9) && !TARGET_OS_IPHONE && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9)
+#if defined(MAC_OS_X_VERSION_10_9) && !TARGET_OS_IPHONE && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9) && AV_HAS_BUILTIN(__builtin_available)
     if (avctx->codec_id == AV_CODEC_ID_PRORES) {
         if (__builtin_available(macOS 10.9, *)) {
             VTRegisterProfessionalVideoWorkflowVideoDecoders();
@@ -903,7 +909,7 @@ static int videotoolbox_start(AVCodecContext *avctx)
     }
 #endif
 
-#if defined(MAC_OS_VERSION_11_0) && !TARGET_OS_IPHONE && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0)
+#if defined(MAC_OS_VERSION_11_0) && !TARGET_OS_IPHONE && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0) && AV_HAS_BUILTIN(__builtin_available)
     if (__builtin_available(macOS 11.0, *)) {
         VTRegisterSupplementalVideoDecoderIfAvailable(videotoolbox->cm_codec_type);
     }
