@@ -54,7 +54,7 @@ jobs:
 
       - name: On macOS and Ubuntu Linux, Checkout this Git Repository Directly
         if: runner.os == 'macOS' || runner.os == 'Linux'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # media-autobuild_suite needs to be directly in the C:\ drive, as it is very finicky with paths
       - name: On Windows, Git Clone whisthq/FFmpeg and whisthq/media-autobuild_suite (FFmpeg Windows Compilation Helper Tools) to C:\
@@ -479,7 +479,7 @@ jobs:
 
       - name: Checkout Whist Git Repository
         if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && failure() }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: whisthq/whist
           ref: "dev"
@@ -511,7 +511,7 @@ jobs:
     if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && success() }}
     steps:
       - name: Checkout Whist Git Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: whisthq/whist
           ref: "dev"
