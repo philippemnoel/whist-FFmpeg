@@ -27,8 +27,8 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: "Windows"
-            os: windows-2019 # Same OS as Windows 10
+          # - name: "Windows"
+          #   os: windows-2019 # Same OS as Windows 10
           - name: "macOS (x64)"
             os: macos-11 # Xcode and Homebrew come preinstalled
           - name: "macOS (arm64)"
