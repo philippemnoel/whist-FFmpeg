@@ -111,7 +111,8 @@
 # Whist-added options
 #--enable-nonfree
 --disable-programs
---disable-doc 
+--disable-postproc
+--disable-doc
 --disable-sdl2
 --enable-filter=scale_cuda
 --enable-shared
