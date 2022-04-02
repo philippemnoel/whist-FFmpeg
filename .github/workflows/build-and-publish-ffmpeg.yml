@@ -53,7 +53,7 @@ jobs:
       headers-tar-name: whist-ffmpeg-headers.tar.gz
       headers-build-folder: include
       s3-bucket-region: us-east-1
-      s3-bucket-uri: s3://fractal-protocol-shared-libs
+      s3-bucket-uri: s3://whist-protocol-dependencies
 
     steps:
       ################################# CONFIG STEPS START ##############################
