@@ -489,6 +489,9 @@ int ff_videotoolbox_uninit(AVCodecContext *avctx)
     if (!vtctx)
         return 0;
 
+    pthread_cond_destroy(&vtctx->cond);
+    pthread_mutex_destroy(&vtctx->mutex);
+
     av_freep(&vtctx->bitstream);
     if (vtctx->frame)
         CVPixelBufferRelease(vtctx->frame);
@@ -683,6 +686,11 @@ static void videotoolbox_decoder_callback(void *opaque,
     AVCodecContext *avctx = opaque;
     VTContext *vtctx = avctx->internal->hwaccel_priv_data;
 
+    pthread_mutex_lock(&vtctx->mutex);
+    vtctx->callback_received = true;
+    pthread_cond_signal(&vtctx->cond);
+    pthread_mutex_unlock(&vtctx->mutex);
+
     if (vtctx->frame) {
         CVPixelBufferRelease(vtctx->frame);
         vtctx->frame = NULL;
@@ -710,11 +718,28 @@ static OSStatus videotoolbox_session_decode_frame(AVCodecContext *avctx)
     if (!sample_buf)
         return -1;
 
+    pthread_mutex_lock(&vtctx->mutex);
+    vtctx->callback_received = false;
     status = VTDecompressionSessionDecodeFrame(videotoolbox->session,
                                                sample_buf,
-                                               0,       // decodeFlags
+                                               kVTDecodeFrame_EnableAsynchronousDecompression, // decodeFlags
                                                NULL,    // sourceFrameRefCon
                                                0);      // infoFlagsOut
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += 1;
+    int ret = 0;
+    do {
+        ret = pthread_cond_timedwait(&vtctx->cond, &vtctx->mutex, &ts);
+    } while (!vtctx->callback_received && !ret);
+    pthread_mutex_unlock(&vtctx->mutex);
+
+    if (!vtctx->callback_received) {
+        printf("Callback not received. Potential hang!!\n");
+        status = -1;
+    }
+
     if (status == noErr)
         status = VTDecompressionSessionWaitForAsynchronousFrames(videotoolbox->session);
 
@@ -1231,6 +1256,9 @@ int ff_videotoolbox_common_init(AVCodecContext *avctx)
     err = videotoolbox_start(avctx);
     if (err < 0)
         goto fail;
+
+    pthread_mutex_init(&vtctx->mutex, NULL);
+    pthread_cond_init(&vtctx->cond, NULL);
 
     return 0;
 

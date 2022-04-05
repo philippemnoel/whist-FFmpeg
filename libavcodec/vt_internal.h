@@ -45,6 +45,10 @@ typedef struct VTContext {
     // Current H264 parameters (used to trigger decoder restart on SPS changes).
     uint8_t                     sps[3];
     bool                        reconfig_needed;
+
+    pthread_cond_t cond;   ///< Used by the decode thread to wait for the callback
+    bool callback_received;
+    pthread_mutex_t mutex; ///< Mutex for above conditional variable
 } VTContext;
 
 int ff_videotoolbox_alloc_frame(AVCodecContext *avctx, AVFrame *frame);
