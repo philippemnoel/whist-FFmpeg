@@ -339,7 +339,7 @@ static int FUNC(sps)(CodedBitstreamContext *ctx, RWContext *rw,
     }
 
     ue(max_num_ref_frames, 0, H264_MAX_DPB_FRAMES);
-    flag(gaps_in_frame_num_allowed_flag);
+    flag(gaps_in_frame_num_value_allowed_flag);
 
     ue(pic_width_in_mbs_minus1,        0, H264_MAX_MB_WIDTH);
     ue(pic_height_in_map_units_minus1, 0, H264_MAX_MB_HEIGHT);
