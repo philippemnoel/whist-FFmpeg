@@ -9,7 +9,7 @@ This repository is Whist's fork of FFmpeg, with a few modifications. We forked S
 
 - Modify `av_malloc` to align data to system pagesize to conform with macOS' Metal API, to avoid unnecessary memory copies from CPU to GPU between video decoding and video rendering with SDL
 
-- Created a GitHub Actions workflow, `build-and-publish-ffmpeg.yml`, to build, test and publish on Windows, macOS and Linux Ubuntu, including configuring proper permissions and linking paths (on macOS, notably)
+- Created a GitHub Actions workflow, `build-and-publish-ffmpeg.yml`, to build, test and publish on Windows, macOS and Linux Ubuntu, including configuring proper permissions and linking paths (on macOS, notably). NOTE: This workflow publishes upstream FFmpeg on Windows with our selected flags (since we have not made any changes to FFmpeg on Windows), but publishes the `main` branch of this repository on macOS and Linux.
 
 - Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
 
