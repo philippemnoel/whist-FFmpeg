@@ -135,7 +135,7 @@ typedef struct H264RawSPS {
     int32_t offset_for_ref_frame[256];
 
     uint8_t max_num_ref_frames;
-    uint8_t gaps_in_frame_num_allowed_flag;
+    uint8_t gaps_in_frame_num_value_allowed_flag;
 
     uint16_t pic_width_in_mbs_minus1;
     uint16_t pic_height_in_map_units_minus1;

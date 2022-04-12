@@ -13,6 +13,8 @@ This repository is Whist's fork of FFmpeg, with a few modifications. We forked S
 
 - Added Docker scripts, mainly `Dockerfile.20`, `docker-build.sh`, `build-docker-image.sh` and `docker-build-scripts/build_ffmpeg.sh`, to compile FFmpeg on Linux Ubuntu 20.04
 
+- Add `h264_constraint` bitstream filter to fix bitstream constraints needed for long-term reference frames.
+
 ## Development
 
 Before building or modifying the code, you should pull the latest changes from the public [`FFmpeg/FFmpeg`](https://github.com/FFmpeg/FFmpeg) repository that this repository is forked from. To setup your repository, follow these steps:
