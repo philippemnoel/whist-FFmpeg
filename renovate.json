@@ -1,6 +1,79 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
-  ]
+  labels: ["dependencies"],
+
+  // We want at most 10 PRs per hour, at most 2 at a time
+  prHourlyLimit: 10,
+  prConcurrentLimit: 2,
+
+  // We target various path prefixes to group those PRs together
+  packageRules: [
+    {
+      matchPaths: [".github/workflows/"],
+      groupName: ".github/workflows",
+    },
+    {
+      matchPaths: ["compat/"],
+      groupName: "compat",
+    },
+    {
+      matchPaths: ["doc/"],
+      groupName: "doc",
+    },
+    {
+      matchPaths: ["docker-build-scripts/"],
+      groupName: "docker-build-scripts",
+    },
+    {
+      matchPaths: ["ffbuild/"],
+      groupName: "ffbuild",
+    },
+    {
+      matchPaths: ["fftools/"],
+      groupName: "fftools",
+    },
+    {
+      matchPaths: ["libavcodec/"],
+      groupName: "libavcodec",
+    },
+    {
+      matchPaths: ["libavdevice/"],
+      groupName: "libavdevice",
+    },
+    {
+      matchPaths: ["libavfilter/"],
+      groupName: "libavfilter",
+    },
+    {
+      matchPaths: ["libavformat/"],
+      groupName: "libavformat",
+    },
+    {
+      matchPaths: ["libavutil/"],
+      groupName: "libavutil",
+    },
+    {
+      matchPaths: ["libpostproc/"],
+      groupName: "libpostproc",
+    },
+    {
+      matchPaths: ["libswresample/"],
+      groupName: "libswresample",
+    },
+    {
+      matchPaths: ["libswscale/"],
+      groupName: "libswscale",
+    },
+    {
+      matchPaths: ["presets/"],
+      groupName: "presets",
+    },
+    {
+      matchPaths: ["tests/"],
+      groupName: "tests",
+    },
+    {
+      matchPaths: ["tools/"],
+      groupName: "tools",
+    },
+  ],
 }
