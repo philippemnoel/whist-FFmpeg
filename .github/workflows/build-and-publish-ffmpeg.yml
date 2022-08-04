@@ -130,7 +130,7 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: C:\media-autobuild_suite
         shell: cmd
-        run: .\media-autobuild_suite.bat "${{ secrets.GHA_USERNAME }}" "${{ secrets.GHA_PERSONAL_ACCESS_TOKEN }}"
+        run: .\media-autobuild_suite.bat
 
       ###################################################################################
       ################################# MACOS STEPS START ###############################
