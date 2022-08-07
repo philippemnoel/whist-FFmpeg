@@ -3,7 +3,7 @@ Whist README
 
 [![Build & Publish Whist FFmpeg](https://github.com/whisthq/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml/badge.svg)](https://github.com/whisthq/FFmpeg/actions/workflows/build-and-publish-ffmpeg.yml)
 
-This repository is Whist's fork of FFmpeg, with a few modifications. We forked SDL so that we can control and optimize it for better integration with the Whist streaming protocol.
+This repository is Whist's fork of FFmpeg, with a few modifications. We forked FFmpeg so that we can control and optimize it for better integration with the Whist streaming protocol.
 
 ## Whist Changelog
 
