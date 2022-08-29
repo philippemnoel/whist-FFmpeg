@@ -105,9 +105,13 @@ jobs:
         shell: powershell
         run: |  
           # media-autobuild_suite can compile successfully but still exit with exit code 1, causing
-          # an incorrect failure of this step. To remediate to this, we force a valid exit code with
-          # `-Or $true`, and then check that the libs were successfully generated.  
-          .\media-autobuild_suite.bat -Or $true
+          # an incorrect failure of this step. To remediate to this, we redirect its output to the
+          # null sink, and then check that the libs were successfully generated to make sure that
+          # the script ran properly. To modify/debug media-autobuild_suite, remove the null sink
+          # redirection to get logs displayed in GitHub Actions.
+          .\media-autobuild_suite.bat | Out-Null
+          
+          Echo "Verifying that all the FFmpeg libs were properly built..."
           Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec-59.dll -PathType Leaf
           Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice-59.dll -PathType Leaf
           Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter-8.dll -PathType Leaf
