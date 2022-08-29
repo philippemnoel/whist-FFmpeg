@@ -129,7 +129,7 @@ jobs:
       - name: On Windows, build FFmpeg via media-autobuild_suite from C:\ drive
         if: runner.os == 'Windows'
         working-directory: C:\media-autobuild_suite
-        shell: cmd
+        shell: powershell
         run: .\media-autobuild_suite.bat
 
       ###################################################################################
