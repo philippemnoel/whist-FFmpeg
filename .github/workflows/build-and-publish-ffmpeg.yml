@@ -130,14 +130,25 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: C:\media-autobuild_suite
         shell: powershell
-        run: |
-          # media-autobuild_suite frequently compiles successfully, but exits with process 1,
-          # causing an incorrect failure of this step. To remediate to this, we pipe the output
-          # to the null sink and force an exit code of 0. Note that if media-autobuild_suite fails,
-          # this step will still succeed and a failure will happen at the publishing stage, which
-          # can be caught there and tracked back to this stage.
-          .\media-autobuild_suite.bat | Out-Null
-          exit 0
+        run: |  
+          # media-autobuild_suite can compile successfully but still exit with exit code 1, causing
+          # an incorrect failure of this step. To remediate to this, we force a valid exit code with
+          # `-Or $true`, and then check that the libs were successfully generated.  
+          .\media-autobuild_suite.bat -Or $true
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec-59.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice-59.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter-8.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat-59.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil-57.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample-4.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale-6.dll -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample.lib -PathType Leaf
+          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale.lib -PathType Leaf
 
       ###################################################################################
       ################################# MACOS STEPS START ###############################
