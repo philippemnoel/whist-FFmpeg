@@ -130,7 +130,14 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: C:\media-autobuild_suite
         shell: powershell
-        run: .\media-autobuild_suite.bat
+        run: |
+          # media-autobuild_suite frequently compiles successfully, but exits with process 1,
+          # causing an incorrect failure of this step. To remediate to this, we pipe the output
+          # to the null sink and force an exit code of 0. Note that if media-autobuild_suite fails,
+          # this step will still succeed and a failure will happen at the publishing stage, which
+          # can be caught there and tracked back to this stage.
+          .\media-autobuild_suite.bat | Out-Null
+          exit 0
 
       ###################################################################################
       ################################# MACOS STEPS START ###############################
