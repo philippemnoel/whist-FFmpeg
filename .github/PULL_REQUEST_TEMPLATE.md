@@ -1,24 +1,17 @@
-| Ticket | Title             |
-| ------ | ----------------- |
-| #nb    | Insert Title Here |
+**Ticket(s) Closed**
 
-## Description
+- Closes #
 
-Give a brief description and context of what you are working on.
+**Description**
 
-## Implementation / Approach
+**Implementation**
 
-Briefly describe your approach, design, implementation to solve the problem if applicable.
+**Documentation & Tests Added**
 
-## Tests
+**Testing Instructions**
 
-List all the possible scenarios/edge cases that you tested. For instance, if you implemented a login feature, you could say that you tested:
-1. Correct username/password
-2. Correct username but incorrect password
-3. Correct username and admin password
+**PR Checklist**
 
-## Checklist
-
-- [ ] Appropriate Unit test coverage
-- [ ] Manual testing has been performed
-- [ ] This PR is linted, tested and follows the best practices of the organization
+- [ ] Did the PR author fully test this PR end-to-end?
+- [ ] Did one PR reviewer fully test this PR end-to-end?
+- [ ] Did one PR reviewer conduct a thorough code design review?
