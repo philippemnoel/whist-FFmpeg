@@ -128,6 +128,7 @@ jobs:
               (Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale.lib -PathType Leaf)
           )
           {
+            Echo "All FFmpeg libs successfully built!"
             exit 0
           }
 
