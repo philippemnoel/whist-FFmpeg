@@ -105,27 +105,28 @@ jobs:
         shell: powershell
         run: |  
           # media-autobuild_suite can compile successfully but still exit with exit code 1, causing
-          # an incorrect failure of this step. To remediate to this, we capture its output and then
-          # check that the libs were successfully generated to make sure that the script ran properly.
-          # To modify/debug media-autobuild_suite, remove the null sink redirection to get logs 
-          # displayed in GitHub Actions.
-          .\media-autobuild_suite.bat 2>&1
+          # an incorrect failure of this step. To remediate to this, we manually check that the libs
+          # were successfully generated to make sure that the script ran properly, and force an exit
+          # code of 0 if they were.
+          .\media-autobuild_suite.bat
           
           Echo "Verifying that all the FFmpeg libs were properly built..."
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec-59.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice-59.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter-8.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat-59.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil-57.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample-4.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale-6.dll -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample.lib -PathType Leaf
-          Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale.lib -PathType Leaf
+          if (Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec-59.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice-59.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter-8.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat-59.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil-57.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample-4.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale-6.dll -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avcodec.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avdevice.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avfilter.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avformat.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\avutil.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swresample.lib -PathType Leaf -And
+              Test-Path -Path C:\media-autobuild_suite\local64\bin-video\swscale.lib -PathType Leaf) {  
+            exit 0
+          }
 
       ###################################################################################
       ################################# MACOS STEPS START ###############################
